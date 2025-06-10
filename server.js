@@ -4,6 +4,7 @@ const WebSocket = require('ws');
 const bodyParser = require('body-parser');
 const webPush = require('web-push');
 const axios = require('axios');
+const path = require('path');
 
 // WebSocket サーバーのエンドポイント
 const wsUrl = 'wss://api.p2pquake.net/v2/ws';
@@ -14,6 +15,14 @@ const reconnectInterval = 1000;
 
 // 環境変数 PORT からポートを取得（Render の要件）
 const PORT = process.env.PORT || 3000;
+
+// 管理者メッセージを保存するためのメモリ内ストレージ
+let adminMessage = {
+  text: '',
+  isVisible: false,
+  type: 'info', // 'info', 'warning', 'error'
+  timestamp: null
+};
 
 // VAPID keys for web push notifications
 const vapidKeys = {
@@ -37,6 +46,54 @@ const server = http.createServer(app);
 
 server.listen(PORT, () => {
   console.log(`HTTP server is running on port ${PORT}`);
+});
+
+// 管理者メッセージを設定するAPI
+app.post('/api/admin-message', (req, res) => {
+  const adminKey = req.query.key;
+  
+  // 簡易的な認証
+  if (adminKey !== '0429') {
+    return res.status(401).json({ error: '認証に失敗しました' });
+  }
+  
+  const { text, isVisible, type } = req.body;
+  
+  adminMessage = {
+    text: text || '',
+    isVisible: isVisible !== undefined ? isVisible : false,
+    type: type || 'info',
+    timestamp: new Date().toISOString()
+  };
+  
+  console.log('Admin message updated:', adminMessage);
+  res.status(200).json({ success: true, message: adminMessage });
+});
+
+// 管理者メッセージを取得するAPI（認証不要 - 公開情報）
+app.get('/api/admin-message', (req, res) => {
+  // 表示設定がtrueの場合のみメッセージを返す
+  if (adminMessage.isVisible && adminMessage.text) {
+    res.status(200).json(adminMessage);
+  } else {
+    res.status(200).json({ isVisible: false });
+  }
+});
+
+// 管理者メッセージを取得するAPI（管理者用 - 認証必要）
+app.get('/api/admin-message-full', (req, res) => {
+  const adminKey = req.query.key;
+  
+  if (adminKey !== '0429') {
+    return res.status(401).json({ error: '認証に失敗しました' });
+  }
+  
+  res.status(200).json(adminMessage);
+});
+
+// 管理者ページを提供
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 let ws;
@@ -66,7 +123,7 @@ function connectWebSocket() {
         console.log('Processing tsunami warning data with code 552.');
         const tsunamiInfo = formatTsunamiWarningInfo(message);
         sendWebPushNotification(tsunamiInfo);
-        sendLineBroadcast(tsunamiInfo);  // 津波情報をLINEで配信
+        sendLineBroadcast(tsunamiInfo);
       } else {
         console.log(`Ignored message with code: ${message.code}`);
       }
@@ -128,8 +185,7 @@ function connectEewWebSocket() {
 }
 
 function formatEewMessage(data) {
-  return `【${data.Title} 推定最大震度${data.MaxIntensity}】\n(第${data.Serial}報)\n
-  ${data.OriginTime.split(' ')[1]}頃、${data.Hypocenter}を震源とする地震がありました。地震の規模はM${data.Magunitude}程度、震源の深さは約${data.Depth}km、最大震度${data.MaxIntensity}程度と推定されています。`;
+  return `【${data.Title} 推定最大震度${data.MaxIntensity}】\n(第${data.Serial}報)\n${data.OriginTime.split(' ')[1]}頃、${data.Hypocenter}を震源とする地震がありました。地震の規模はM${data.Magunitude}程度、震源の深さは約${data.Depth}km、最大震度${data.MaxIntensity}程度と推定されています。`;
 }
 
 function formatEarthquakeInfo(earthquake, message) {
@@ -282,7 +338,7 @@ function sendWebPushNotification(message) {
 }
 
 async function sendLineBroadcast(message) {
-  const token = 'phHkJycfaMjHVXDcir9/eIdPV8uVhEsaqcosdBo53JxJtr2D2n+yrvUbe8aSiKGFXmwHEH1O0w+B5MwHGxq28G6R6kTkqrWPA/siv6vLWC/mxGBKYXIvB76n41aoa3fqOou9/vShToLAKaUG+tQFVAdB04t89/1O/w1cDnyilFU=';
+  const token = 'phHkJycfaMjHVXDcir9/eIdPV8uVhEsaqcosdBo53JxJtr2D2n+yrvUbe8aSiKGFXmwHEH1O0w+B5MwHGxq28G6R6kTkqrWPA/siv6vLWC/mxGBKYXIvB76n41taoa3fqOou9/vShToLAKaUG+tQFVAdB04t89/1O/w1cDnyilFU=';
   const url = 'https://api.line.me/v2/bot/message/broadcast';
   const headers = {
     'Content-Type': 'application/json',
