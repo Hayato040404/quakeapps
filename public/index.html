@@ -2,139 +2,896 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>地震情報アプリ</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="/ewc.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/ewc.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/ewc.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/ewc.png">
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f9f9f9;
+        :root {
+            --system-blue: #007AFF;
+            --system-red: #FF3B30;
+            --system-green: #34C759;
+            --system-orange: #FF9500;
+            --system-gray: #8E8E93;
+            --system-gray2: #AEAEB2;
+            --system-gray3: #C7C7CC;
+            --system-gray4: #D1D1D6;
+            --system-gray5: #E5E5EA;
+            --system-gray6: #F2F2F7;
+        }
+
+        /* Light mode (default) */
+        :root {
+            --background: #F2F2F7;
+            --card-background: #FFFFFF;
+            --text-primary: #000000;
+            --text-secondary: #6C6C70;
+            --text-tertiary: #8E8E93;
+            --divider: rgba(60, 60, 67, 0.1);
+            --shadow: rgba(0, 0, 0, 0.05);
+            --active-background: rgba(0, 0, 0, 0.05);
+            --copy-button-bg: rgba(0, 122, 255, 0.1);
+            --copy-button-active: rgba(0, 122, 255, 0.2);
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #000000;
+                --card-background: #1C1C1E;
+                --text-primary: #FFFFFF;
+                --text-secondary: #98989E;
+                --text-tertiary: #636366;
+                --divider: rgba(84, 84, 88, 0.65);
+                --shadow: rgba(0, 0, 0, 0.3);
+                --active-background: rgba(255, 255, 255, 0.05);
+                --copy-button-bg: rgba(0, 122, 255, 0.2);
+                --copy-button-active: rgba(0, 122, 255, 0.3);
+            }
+        }
+
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        .admin-message {
+            margin: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+            display: none;
+        }
+
+        .admin-message.info {
+            background-color: rgba(0, 122, 255, 0.1);
+            border-left: 4px solid var(--system-blue);
+            color: var(--system-blue);
+        }
+
+        .admin-message.warning {
+            background-color: rgba(255, 149, 0, 0.1);
+            border-left: 4px solid var(--system-orange);
+            color: var(--system-orange);
+        }
+
+        .admin-message.error {
+            background-color: rgba(255, 59, 48, 0.1);
+            border-left: 4px solid var(--system-red);
+            color: var(--system-red);
+        }
+
+        .admin-message.show {
+            display: block;
+        }
+
+        .admin-message-close {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: inherit;
+            opacity: 0.7;
+        }
+
+        .admin-message-close:hover {
+            opacity: 1;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: var(--background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 16px 16px 8px;
+            text-align: center;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .app-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .app-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .button-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .btn {
+            background-color: var(--system-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+            opacity: 0.8;
+        }
+
+        .btn.secondary {
+            background-color: var(--system-gray5);
+            color: var(--text-primary);
+        }
+
+        .section-header {
+            padding: 16px 16px 8px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            background-color: var(--background);
+            position: sticky;
+            top: 60px;
+            z-index: 90;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .section-subheader {
+            padding: 0 16px 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            background-color: var(--background);
+            position: sticky;
+            top: 94px;
+            z-index: 90;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .list-group {
+            margin-bottom: 24px;
+            background-color: var(--card-background);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px var(--shadow);
+        }
+
+        .list-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--divider);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item:active {
+            background-color: var(--active-background);
+        }
+
+        .list-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .list-item-title {
+            font-size: 17px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .list-item-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .list-item-details {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .list-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 12px;
+        }
+
+        .copy-button {
+            background-color: var(--copy-button-bg);
+            border: none;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--system-blue);
+            font-size: 14px;
+        }
+
+        .copy-button:active {
+            background-color: var(--copy-button-active);
+            transform: scale(0.9);
+        }
+
+        .copy-button.copied {
+            background-color: var(--system-green);
+            color: white;
+        }
+
+        .chevron {
+            color: var(--system-gray3);
+            font-size: 14px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            background-color: var(--system-blue);
+            color: white;
+        }
+
+        .badge.warning {
+            background-color: var(--system-red);
+        }
+
+        .badge.info {
+            background-color: var(--system-gray);
+        }
+
+        .coming-soon {
+            text-align: center;
+            padding: 32px 16px;
+            color: var(--text-secondary);
+        }
+
+        .coming-soon-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .coming-soon-text {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .detail-view {
+            display: none;
+            background-color: var(--background);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateY(0); }
+            to { transform: translateY(100%); }
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background-color: var(--card-background);
+            position: sticky;
+            top: 0;
+            z-index: 101;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: var(--system-blue);
+            font-size: 17px;
+            font-weight: 400;
+            cursor: pointer;
+            padding: 0;
+            margin-right: 8px;
+        }
+
+        .detail-title {
+            font-size: 17px;
+            font-weight: 600;
+            flex-grow: 1;
+            text-align: center;
+            margin-right: 44px;
+        }
+
+        .detail-content {
+            padding: 16px;
+        }
+
+        .detail-info {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            white-space: pre-line;
+            line-height: 1.6;
+            box-shadow: 0 1px 2px var(--shadow);
+        }
+
+        .edit-section {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px var(--shadow);
+        }
+
+        .edit-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .textarea-ios {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid var(--system-gray4);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 15px;
+            line-height: 1.4;
+            resize: vertical;
+            background-color: var(--card-background);
+            color: var(--text-primary);
+        }
+
+        .textarea-ios:focus {
+            outline: none;
+            border-color: var(--system-blue);
+        }
+
+        .action-button {
+            display: block;
+            width: 100%;
+            background-color: var(--system-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .action-button:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        .loading-indicator {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 32px 16px;
+            color: var(--text-secondary);
         }
-        header {
-            width: 100%;
-            background-color: #ffffff;
-            color: #333333;
-            padding: 15px 0;
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--system-gray4);
+            border-top-color: var(--system-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
             text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px 16px;
+            color: var(--text-secondary);
         }
-        main {
-            width: 100%;
-            max-width: 800px;
-            margin: 20px;
-            padding: 20px;
-            background-color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border-radius: 12px;
+
+        .empty-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
         }
-        #earthquakeInfo, #eewInfo {
-            margin: 20px 0;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            background-color: #fafafa;
-        }
-        textarea {
-            width: 100%;
-            height: 100px;
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-family: inherit;
-            font-size: 16px;
-        }
-        button {
-            display: block;
-            padding: 8px 16px;
-            margin-top: 10px;
-            background-color: #007aff;
+
+        .scale-indicator {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
             color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            line-height: 24px;
+            margin-right: 8px;
         }
-        button:hover {
-            background-color: #005bb5;
+
+        .scale-1 { background-color: #69C0FF; }
+        .scale-2 { background-color: #3AA0FF; }
+        .scale-3 { background-color: #1677FF; }
+        .scale-4 { background-color: #0958D9; }
+        .scale-5弱 { background-color: #52C41A; }
+        .scale-5強 { background-color: #389E0D; }
+        .scale-6弱 { background-color: #FAAD14; }
+        .scale-6強 { background-color: #D46B08; }
+        .scale-7 { background-color: #F5222D; }
+
+        .tsunami-warning {
+            background-color: rgba(245, 34, 45, 0.1);
+            border-left: 4px solid var(--system-red);
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 4px;
+            color: var(--system-red);
+        }
+
+        .no-tsunami {
+            background-color: rgba(82, 196, 26, 0.1);
+            border-left: 4px solid var(--system-green);
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 4px;
+            color: var(--system-green);
+        }
+
+        .checking-tsunami {
+            background-color: rgba(250, 173, 20, 0.1);
+            border-left: 4px solid var(--system-orange);
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 4px;
+            color: var(--system-orange);
+        }
+
+        .copy-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .copy-toast.show {
+            opacity: 1;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 16px;
+            color: var(--text-tertiary);
+            font-size: 12px;
+            border-top: 1px solid var(--divider);
+            margin-top: 40px;
+        }
+
+        /* 管理者メニューボタン用のスタイル */
+        .admin-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background-color: var(--card-background);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 100;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        .admin-button:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* Ensure proper contrast in both modes */
+        @media (prefers-color-scheme: light) {
+            .copy-toast {
+                background-color: rgba(0, 0, 0, 0.8);
+                color: white;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .copy-toast {
+                background-color: rgba(255, 255, 255, 0.9);
+                color: black;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>地震情報アプリ</h1>
-        <p>6/2のバグ修正など。</p>
-        <button id="subscribeButton">通知を許可</button>
-        <button id="testNotificationButton">テスト通知</button>
-        <button class="scroll-button" onclick="scrollToEewSection()">緊急地震速報へ</button>
-      <button id="reloadButton">再読み込み🔃</button>
-    </header>
-    <main>
-        <div id="earthquakeInfo">地震情報を取得中...</div>
-        <div id="eewInfo">緊急地震速報を取得中...</div>
-    </main>
+    <div class="container">
+        <!-- 管理者メッセージ表示エリア -->
+        <div id="adminMessage" class="admin-message">
+            <button class="admin-message-close" onclick="hideAdminMessage()">×</button>
+            <div id="adminMessageText"></div>
+        </div>
+
+        <div class="header">
+            <h1 class="app-title">地震情報</h1>
+            <p class="app-subtitle">UIの改善。</p>
+            <div class="button-row">
+                <button id="subscribeButton" class="btn">通知を許可</button>
+                <button id="testNotificationButton" class="btn">テスト通知</button>
+                <button class="btn secondary" onclick="scrollToEewSection()">緊急地震速報へ</button>
+                <button id="reloadButton" class="btn secondary">再読み込み</button>
+            </div>
+        </div>
+
+        <div class="section-header">地震情報</div>
+        <div class="section-subheader">最新の地震情報を表示しています</div>
+        <div class="list-group" id="earthquakeList">
+            <div class="loading-indicator">
+                <div class="spinner"></div>
+                <div>地震情報を取得中...</div>
+            </div>
+        </div>
+
+        <div class="section-header" id="eewSection">緊急地震速報</div>
+        <div class="section-subheader">緊急地震速報の最新情報</div>
+        <div class="list-group" id="eewList">
+            <div class="loading-indicator">
+                <div class="spinner"></div>
+                <div>緊急地震速報を取得中...</div>
+            </div>
+        </div>
+
+        <div class="section-header">気象情報</div>
+        <div class="section-subheader">天気予報や気象警報などの情報</div>
+        <div class="list-group">
+            <div class="coming-soon">
+                <div class="coming-soon-icon">🌤️</div>
+                <div class="coming-soon-text">Coming Soon</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            一部のコードはv0によって書かれています
+        </div>
+    </div>
+
+    <!-- コピー完了トースト -->
+    <div id="copyToast" class="copy-toast">コピーしました</div>
+
+    <!-- 地震情報詳細表示用のテンプレート -->
+    <div id="earthquakeDetailTemplate" class="detail-view">
+        <div class="detail-header">
+            <button class="back-button" onclick="closeDetail('earthquakeDetailTemplate')">戻る</button>
+            <div class="detail-title">地震情報</div>
+        </div>
+        <div class="detail-content">
+            <div class="detail-info" id="earthquakeDetailInfo"></div>
+            <div class="edit-section">
+                <div class="edit-label">通知メッセージを編集</div>
+                <textarea class="textarea-ios" id="earthquakeDetailTextarea"></textarea>
+                <button class="action-button" id="earthquakeShareButton">編集したメッセージを共有</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 緊急地震速報詳細表示用のテンプレート -->
+    <div id="eewDetailTemplate" class="detail-view">
+        <div class="detail-header">
+            <button class="back-button" onclick="closeDetail('eewDetailTemplate')">戻る</button>
+            <div class="detail-title">緊急地震速報</div>
+        </div>
+        <div class="detail-content">
+            <div class="detail-info" id="eewDetailInfo"></div>
+            <div class="edit-section">
+                <div class="edit-label">通知メッセージを編集</div>
+                <textarea class="textarea-ios" id="eewDetailTextarea"></textarea>
+                <button class="action-button" id="eewShareButton">編集したメッセージを共有</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理者メニューへのリンク -->
+    <a href="/admin" class="admin-button" title="管理者メニュー">⚙️</a>
 
     <script>
-      
         const publicVapidKey = 'BC1T1-o4f9vLJ11ngQXOZTdKY8xd38vUyWeWyPosJ7JDJxnCPrAGtJZE_CUW4dqdh60eEUf5G-qzWjaojsSMer0';
+        let earthquakeData = [];
+        let eewData = null;
+
+        // 管理者メッセージを取得して表示する関数
+        async function fetchAdminMessage() {
+            try {
+                const response = await fetch('/api/admin-message');
+                const data = await response.json();
+                
+                if (data.isVisible && data.text) {
+                    showAdminMessage(data.text, data.type || 'info');
+                }
+            } catch (error) {
+                console.error('管理者メッセージの取得に失敗しました:', error);
+            }
+        }
+
+        // 管理者メッセージを表示する関数
+        function showAdminMessage(text, type = 'info') {
+            const messageElement = document.getElementById('adminMessage');
+            const textElement = document.getElementById('adminMessageText');
+            
+            textElement.textContent = text;
+            messageElement.className = `admin-message ${type} show`;
+        }
+
+        // 管理者メッセージを非表示にする関数
+        function hideAdminMessage() {
+            const messageElement = document.getElementById('adminMessage');
+            messageElement.classList.remove('show');
+        }
 
         async function subscribe() {
             if ('serviceWorker' in navigator) {
-                const registration = await navigator.serviceWorker.register('/service-worker.js');
-                const subscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-                });
+                try {
+                    const registration = await navigator.serviceWorker.register('/service-worker.js');
+                    const subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+                    });
 
-                await fetch('/subscribe', {
-                    method: 'POST',
-                    body: JSON.stringify(subscription),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+                    await fetch('/subscribe', {
+                        method: 'POST',
+                        body: JSON.stringify(subscription),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
 
-                alert('通知が許可されました！');
+                    showAlert('通知が許可されました！');
+                } catch (error) {
+                    console.error('通知の許可に失敗しました:', error);
+                    showAlert('通知の許可に失敗しました。');
+                }
             } else {
-                alert('このブラウザはプッシュ通知をサポートしていません。');
+                showAlert('このブラウザはプッシュ通知をサポートしていません。');
             }
         }
 
         async function sendTestNotification() {
             if ('serviceWorker' in navigator) {
-                const registration = await navigator.serviceWorker.getRegistration();
-                if (registration) {
-                    const options = {
-                        body: 'これはテスト通知です。',
-                        icon: '/icon.png'
-                    };
-                    registration.showNotification('テスト通知', options);
-                } else {
-                    alert('サービスワーカーが登録されていません。');
+                try {
+                    const registration = await navigator.serviceWorker.getRegistration();
+                    if (registration) {
+                        const options = {
+                            body: 'これはテスト通知です。',
+                            icon: '/icon.png'
+                        };
+                        registration.showNotification('テスト通知', options);
+                    } else {
+                        showAlert('サービスワーカーが登録されていません。');
+                    }
+                } catch (error) {
+                    console.error('テスト通知の送信に失敗しました:', error);
+                    showAlert('テスト通知の送信に失敗しました。');
                 }
             } else {
-                alert('このブラウザはプッシュ通知をサポートしていません。');
+                showAlert('このブラウザはプッシュ通知をサポートしていません。');
             }
         }
 
-        document.getElementById('subscribeButton').addEventListener('click', () => {
-            subscribe().catch(err => console.error(err));
-        });
+        function showAlert(message) {
+            alert(message);
+        }
 
-        document.getElementById('testNotificationButton').addEventListener('click', () => {
-            sendTestNotification().catch(err => console.error(err));
-        });
-      document.getElementById('reloadButton').addEventListener('click', () => {
-    location.reload();
-});
+        function showCopyToast() {
+            const toast = document.getElementById('copyToast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        async function copyToClipboard(text) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    // フォールバック: 古いブラウザ対応
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    textArea.remove();
+                }
+                showCopyToast();
+                return true;
+            } catch (err) {
+                console.error('コピーに失敗しました:', err);
+                showAlert('コピーに失敗しました');
+                return false;
+            }
+        }
+
+        function generateDetailedEarthquakeText(earthquake) {
+            const time = new Date(earthquake.earthquake.time);
+            const date = time.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' });
+            const timeStr = time.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+
+            const hypocenter = earthquake.earthquake.hypocenter.name;
+            const maxScale = getScaleDescription(earthquake.earthquake.maxScale);
+            let magnitude = earthquake.earthquake.hypocenter.magnitude;
+            let depth = earthquake.earthquake.hypocenter.depth;
+
+            depth = depth === -1 ? '不明' : depth === 0 ? 'ごく浅い' : `約${depth}km`;
+            magnitude = magnitude === -1 ? '不明' : magnitude.toFixed(1);
+
+            const pointsByScale = groupPointsByScale(earthquake.points);
+            const tsunamiInfo = getTsunamiInfo(earthquake.earthquake.domesticTsunami);
+            const freeFormComment = earthquake.comments?.freeFormComment || '';
+
+            let formattedMessage;
+
+            if (earthquake.issue && earthquake.issue.type === 'ScalePrompt') {
+                formattedMessage = `[震度速報]\n${date} ${timeStr}ごろ、地震による強い揺れを感じました。震度３以上が観測された地域をお知らせします。\n`;
+
+                Object.keys(pointsByScale).sort((a, b) => b - a).forEach(scale => {
+                    formattedMessage += `\n《震度${scale}》`;
+                    Object.keys(pointsByScale[scale]).forEach(pref => {
+                        formattedMessage += `\n【${pref}】${pointsByScale[scale][pref].join('  ')}`;
+                    });
+                });
+            } else {
+                formattedMessage = `[地震情報]\n${date} ${timeStr}頃\n震源地：${hypocenter}\n最大震度：${maxScale}\n深さ：${depth}\n規模：M${magnitude}\n${tsunamiInfo}\n\n［各地の震度］`;
+
+                const scaleOrder = ['7', '6強', '6弱', '5強', '5弱','5弱以上と推定されるが震度情報を入手していない', '4', '3', '2', '1'];
+                const sortedScales = Object.keys(pointsByScale).sort((a, b) => {
+                    return scaleOrder.indexOf(a) - scaleOrder.indexOf(b);
+                });
+
+                sortedScales.forEach(scale => {
+                    formattedMessage += `\n《震度${scale}》`;
+                    Object.keys(pointsByScale[scale]).forEach(pref => {
+                        const uniqueCities = new Set();
+                        pointsByScale[scale][pref].forEach(addr => {
+                            uniqueCities.add(addr);
+                        });
+                        formattedMessage += `\n【${pref}】${Array.from(uniqueCities).join('  ')}`;
+                    });
+                });
+
+                if (freeFormComment) {
+                    formattedMessage += `\n\n【情報】\n${freeFormComment}`;
+                }
+            }
+
+            return formattedMessage;
+        }
+
+        function generateDetailedEewText(data) {
+            if (data.isCancel) {
+                return "先程の緊急地震速報は取り消されました。";
+            }
+            
+            let formattedMessage = formatEewMessage(data);
+            if (data.isAssumption) {
+                formattedMessage += "\n※この緊急地震速報は精度が低い可能性があります※";
+            }
+            
+            return formattedMessage;
+        }
 
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -151,111 +908,228 @@
         async function fetchEarthquakeInfo() {
             try {
                 const response = await fetch('https://api.p2pquake.net/v2/history?codes=551&limit=5');
-                const data = await response.json();
-                displayEarthquakeInfo(data);
+                earthquakeData = await response.json();
+                displayEarthquakeList(earthquakeData);
             } catch (error) {
                 console.error('Error fetching earthquake information:', error);
+                document.getElementById('earthquakeList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <div>地震情報の取得に失敗しました</div>
+                    </div>
+                `;
             }
         }
 
         async function fetchEewInfo() {
             try {
                 const response = await fetch('https://api.wolfx.jp/jma_eew.json');
-                const data = await response.json();
-                displayEewInfo(data);
+                eewData = await response.json();
+                displayEewList(eewData);
             } catch (error) {
                 console.error('Error fetching EEW information:', error);
-            }
-        }
-
-        function displayEarthquakeInfo(earthquakes) {
-    const container = document.getElementById('earthquakeInfo');
-    container.innerHTML = '';
-    earthquakes.forEach((earthquake, index) => {
-        const time = new Date(earthquake.earthquake.time);
-        const date = time.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' });
-        const timeStr = time.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-
-        const hypocenter = earthquake.earthquake.hypocenter.name;
-        const maxScale = getScaleDescription(earthquake.earthquake.maxScale);
-        let magnitude = earthquake.earthquake.hypocenter.magnitude;
-        let depth = earthquake.earthquake.hypocenter.depth;
-
-        depth = depth === -1 ? '不明' : depth === 0 ? 'ごく浅い' : `約${depth}km`;
-        magnitude = magnitude === -1 ? '不明' : magnitude.toFixed(1);
-
-        const pointsByScale = groupPointsByScale(earthquake.points);
-        const tsunamiInfo = getTsunamiInfo(earthquake.earthquake.domesticTsunami);
-        const freeFormComment = earthquake.comments?.freeFormComment || '';
-
-        let formattedMessage;
-
-        if (earthquake.issue && earthquake.issue.type === 'ScalePrompt') {
-            formattedMessage = `[震度速報]\n${date} ${timeStr}ごろ、地震による強い揺れを感じました。震度３以上が観測された地域をお知らせします。\n`;
-
-            Object.keys(pointsByScale).sort((a, b) => b - a).forEach(scale => {
-                formattedMessage += `\n《震度${scale}》`;
-                Object.keys(pointsByScale[scale]).forEach(pref => {
-                    formattedMessage += `\n【${pref}】${pointsByScale[scale][pref].join('  ')}`;
-                });
-            });
-        } else {
-            formattedMessage = `[地震情報]\n${date} ${timeStr}頃\n震源地：${hypocenter}\n最大震度：${maxScale}\n深さ：${depth}\n規模：M${magnitude}\n${tsunamiInfo}\n\n［各地の震度］`;
-
-            const scaleOrder = ['7', '6強', '6弱', '5強', '5弱','5弱以上と推定されるが震度情報を入手していない', '4', '3', '2', '1'];
-            const sortedScales = Object.keys(pointsByScale).sort((a, b) => {
-                return scaleOrder.indexOf(a) - scaleOrder.indexOf(b);
-            });
-
-            sortedScales.forEach(scale => {
-                formattedMessage += `\n《震度${scale}》`;
-                Object.keys(pointsByScale[scale]).forEach(pref => {
-                    const uniqueCities = new Set();
-                    pointsByScale[scale][pref].forEach(addr => {
-                        uniqueCities.add(addr); // 修正後の市区町村名を利用
-                    });
-                    formattedMessage += `\n【${pref}】${Array.from(uniqueCities).join('  ')}`;
-                });
-            });
-
-            if (freeFormComment) {
-                formattedMessage += `\n\n【情報】\n${freeFormComment}`;
-            }
-        }
-                const earthquakeInfo = document.createElement('div');
-                earthquakeInfo.innerHTML = `
-                    <p>${formattedMessage.replace(/\n/g, '<br>')}</p>
-                    
-                    <textarea id="editedMessage${index}" placeholder="通知メッセージを編集" style="width: 100%; height: 150px;">${formattedMessage}</textarea>
-                    <button onclick="shareEditedMessage(${index})">編集したメッセージを共有</button>
+                document.getElementById('eewList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <div>緊急地震速報の取得に失敗しました</div>
+                    </div>
                 `;
-                container.appendChild(earthquakeInfo);
-            });
+            }
         }
 
-        function displayEewInfo(data) {
-            const container = document.getElementById('eewInfo');
+        function displayEarthquakeList(earthquakes) {
+            const container = document.getElementById('earthquakeList');
             container.innerHTML = '';
-            if (data.Title && data.CodeType) {
-                let formattedMessage;
-                if (data.isCancel) {
-                    formattedMessage = "先程の緊急地震速報は取り消されました。";
-                } else {
-                    formattedMessage = formatEewMessage(data);
-                    if (data.isAssumption) {
-                        formattedMessage += "\n※この緊急地震速報は精度が低い可能性があります※";
-                    }
-                }
-
-                const eewInfo = document.createElement('div');
-                eewInfo.innerHTML = `
-                    <p>${formattedMessage.replace(/\n/g, '<br>')}</p>
-                    
-                    <textarea id="editedEewMessage" placeholder="通知メッセージを編集" style="width: 100%; height: 150px;">${formattedMessage}</textarea>
-                    <button onclick="shareEditedEewMessage()">編集したメッセージを共有</button>
+            
+            if (!earthquakes || earthquakes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <div>現在、表示する地震情報はありません</div>
+                    </div>
                 `;
-                container.appendChild(eewInfo);
+                return;
             }
+
+            earthquakes.forEach((earthquake, index) => {
+                const time = new Date(earthquake.earthquake.time);
+                const date = time.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' });
+                const timeStr = time.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+                
+                const hypocenter = earthquake.earthquake.hypocenter.name;
+                const maxScale = getScaleDescription(earthquake.earthquake.maxScale);
+                let magnitude = earthquake.earthquake.hypocenter.magnitude;
+                magnitude = magnitude === -1 ? '不明' : magnitude.toFixed(1);
+                
+                const tsunamiInfo = getTsunamiInfo(earthquake.earthquake.domesticTsunami);
+                const tsunamiBadge = getTsunamiBadge(earthquake.earthquake.domesticTsunami);
+
+                const listItem = document.createElement('div');
+                listItem.className = 'list-item';
+                
+                listItem.innerHTML = `
+                    <div class="list-item-content" onclick="showEarthquakeDetail(${index})">
+                        <div class="list-item-header">
+                            <div class="list-item-title">
+                                <span class="scale-indicator scale-${maxScale}">震${maxScale}</span>
+                                ${date} ${timeStr}
+                            </div>
+                        </div>
+                        <div class="list-item-subtitle">${hypocenter} M${magnitude}</div>
+                        <div class="list-item-details">
+                            ${tsunamiBadge}
+                        </div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="copy-button" onclick="event.stopPropagation(); copyEarthquakeInfo(${index}, this)" title="詳細情報をコピー">
+                            📋
+                        </button>
+                        <span class="chevron">›</span>
+                    </div>
+                `;
+                
+                container.appendChild(listItem);
+            });
+        }
+
+        function displayEewList(data) {
+            const container = document.getElementById('eewList');
+            container.innerHTML = '';
+            
+            if (!data.Title || !data.CodeType) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚡</div>
+                        <div>現在、緊急地震速報は発表されていません</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const listItem = document.createElement('div');
+            listItem.className = 'list-item';
+            
+            const time = data.OriginTime ? data.OriginTime.split(' ')[1] : '';
+            const isCancel = data.isCancel;
+            const maxIntensity = data.MaxIntensity || '';
+            const hypocenter = data.Hypocenter || '';
+            
+            let badgeClass = 'warning';
+            let badgeText = '緊急地震速報';
+            
+            if (isCancel) {
+                badgeClass = 'info';
+                badgeText = '取消';
+            }
+            
+            listItem.innerHTML = `
+                <div class="list-item-content" onclick="showEewDetail()">
+                    <div class="list-item-header">
+                        <div class="list-item-title">
+                            <span class="badge ${badgeClass}">${badgeText}</span>
+                            ${isCancel ? '先程の緊急地震速報は取り消されました' : `最大震度${maxIntensity}程度`}
+                        </div>
+                    </div>
+                    ${!isCancel ? `
+                    <div class="list-item-subtitle">${hypocenter} ${time}</div>
+                    <div class="list-item-details">
+                        第${data.Serial}報 - ${data.isAssumption ? '精度が低い可能性があります' : ''}
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="list-item-actions">
+                    <button class="copy-button" onclick="event.stopPropagation(); copyEewInfo(this)" title="詳細情報をコピー">
+                        📋
+                    </button>
+                    <span class="chevron">›</span>
+                </div>
+            `;
+            
+            container.appendChild(listItem);
+        }
+
+        async function copyEarthquakeInfo(index, button) {
+            const earthquake = earthquakeData[index];
+            const detailedText = generateDetailedEarthquakeText(earthquake);
+            
+            const success = await copyToClipboard(detailedText);
+            if (success) {
+                button.classList.add('copied');
+                button.innerHTML = '✓';
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = '📋';
+                }, 2000);
+            }
+        }
+
+        async function copyEewInfo(button) {
+            if (!eewData) return;
+            
+            const detailedText = generateDetailedEewText(eewData);
+            
+            const success = await copyToClipboard(detailedText);
+            if (success) {
+                button.classList.add('copied');
+                button.innerHTML = '✓';
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = '📋';
+                }, 2000);
+            }
+        }
+
+        function showEarthquakeDetail(index) {
+            const earthquake = earthquakeData[index];
+            const formattedMessage = generateDetailedEarthquakeText(earthquake);
+
+            // 津波情報のスタイル付き表示
+            let tsunamiHtml = '';
+            const tsunamiType = earthquake.earthquake.domesticTsunami;
+            
+            if (tsunamiType === 'None') {
+                tsunamiHtml = `<div class="no-tsunami">この地震による津波の心配はありません。</div>`;
+            } else if (tsunamiType === 'Checking') {
+                tsunamiHtml = `<div class="checking-tsunami">津波の有無を調査中です。今後の情報に注意してください。</div>`;
+            } else if (['NonEffective', 'Watch', 'Warning'].includes(tsunamiType)) {
+                const tsunamiInfo = getTsunamiInfo(tsunamiType);
+                tsunamiHtml = `<div class="tsunami-warning">${tsunamiInfo}</div>`;
+            }
+
+            document.getElementById('earthquakeDetailInfo').innerHTML = formattedMessage.replace(/\n/g, '<br>') + tsunamiHtml;
+            document.getElementById('earthquakeDetailTextarea').value = formattedMessage;
+            
+            const shareButton = document.getElementById('earthquakeShareButton');
+            shareButton.onclick = () => shareEditedMessage('earthquakeDetailTextarea', '地震情報');
+            
+            document.getElementById('earthquakeDetailTemplate').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function showEewDetail() {
+            if (!eewData || !eewData.Title) return;
+            
+            const formattedMessage = generateDetailedEewText(eewData);
+            
+            document.getElementById('eewDetailInfo').innerHTML = formattedMessage.replace(/\n/g, '<br>');
+            document.getElementById('eewDetailTextarea').value = formattedMessage;
+            
+            const shareButton = document.getElementById('eewShareButton');
+            shareButton.onclick = () => shareEditedMessage('eewDetailTextarea', '緊急地震速報');
+            
+            document.getElementById('eewDetailTemplate').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDetail(templateId) {
+            const template = document.getElementById(templateId);
+            template.style.animation = 'slideOut 0.3s ease forwards';
+            
+            setTimeout(() => {
+                template.style.display = 'none';
+                template.style.animation = '';
+                document.body.style.overflow = '';
+            }, 300);
         }
 
         function formatEewMessage(data) {
@@ -278,53 +1152,12 @@
             return scaleDescriptions[scale] || '不明';
         }
 
-function groupPointsByScale(points) {
-    const pointsByScale = {};
-
-    points.forEach(point => {
-        const scale = getScaleDescription(point.scale);
-        let addr = point.addr;
-        const prefecture = point.pref;
-
-        if (!scale) return;
-
-        // STEP 1: 市区町村で切り出す
-        let originalAddr = addr; // 元のアドレス
-        const cityMatch = addr.match(/([^市区町村]+[市区町村])/);
-        if (cityMatch) {
-            addr = cityMatch[1];
-        }
-        console.log(`切り出し前: ${originalAddr}, 切り出し後: ${addr}`);
-
-        // STEP 2: 特定の市区町村名を修正する
-        const cityAdjustments = {
-            "大町": "大町市",
-            "市貝": "市貝町",
-            "田村": "田村市",
-            "市川": "市川市",
-            "町田": "町田市",
-            "市原": "市原市"
-        };
-
-        if (cityAdjustments[addr]) {
-            console.log(`修正前: ${addr}`);
-            addr = cityAdjustments[addr];
-            console.log(`修正後: ${addr}`);
-        }
-
-        // STEP 3: pointsByScaleに追加
-        pointsByScale[scale] = pointsByScale[scale] || {};
-        pointsByScale[scale][prefecture] = pointsByScale[scale][prefecture] || [];
-        pointsByScale[scale][prefecture].push(addr);
-    });
-
-    return pointsByScale;
-}
         function getTsunamiInfo(domesticTsunami) {
             const tsunamiMessages = {
                 "None": "この地震による津波の心配はありません。",
                 "Unknown": "不明",
                 "Checking": "津波の有無を調査中です。今後の情報に注意してください。",
+                
                 "NonEffective": "若干の海面変動があるかもしれませんが、被害の心配はありません。",
                 "Watch": "現在、津波注意報を発表中です。",
                 "Warning": "津波警報等（大津波警報・津波警報あるいは津波注意報）を発表中です。"
@@ -332,62 +1165,88 @@ function groupPointsByScale(points) {
             return tsunamiMessages[domesticTsunami] || "（津波情報なし）";
         }
 
-        function shareComment(index) {
-            const comment = document.getElementById(`comment${index}`).value;
-            if (navigator.share) {
-                navigator.share({
-                    title: '自作地震情報文',
-                    text: comment
-                }).catch(console.error);
-            } else {
-                alert('このブラウザは共有機能をサポートしていません。');
-            }
+        function getTsunamiBadge(domesticTsunami) {
+            const tsunamiBadges = {
+                "None": '<span class="badge info">津波の心配なし</span>',
+                "Unknown": '<span class="badge">不明</span>',
+                "Checking": '<span class="badge">津波調査中</span>',
+                "NonEffective": '<span class="badge">若干の海面変動</span>',
+                "Watch": '<span class="badge warning">津波注意報</span>',
+                "Warning": '<span class="badge warning">津波警報</span>'
+            };
+            return tsunamiBadges[domesticTsunami] || "";
         }
 
-        function shareEditedMessage(index) {
-            const editedMessage = document.getElementById(`editedMessage${index}`).value;
+        function groupPointsByScale(points) {
+            const pointsByScale = {};
+
+            points.forEach(point => {
+                const scale = getScaleDescription(point.scale);
+                let addr = point.addr;
+                const prefecture = point.pref;
+
+                if (!scale) return;
+
+                let originalAddr = addr;
+                const cityMatch = addr.match(/([^市区町村]+[市区町村])/);
+                if (cityMatch) {
+                    addr = cityMatch[1];
+                }
+
+                const cityAdjustments = {
+                    "大町": "大町市",
+                    "市貝": "市貝町",
+                    "田村": "田村市",
+                    "市川": "市川市",
+                    "町田": "町田市",
+                    "市原": "市原市"
+                };
+
+                if (cityAdjustments[addr]) {
+                    addr = cityAdjustments[addr];
+                }
+
+                pointsByScale[scale] = pointsByScale[scale] || {};
+                pointsByScale[scale][prefecture] = pointsByScale[scale][prefecture] || [];
+                pointsByScale[scale][prefecture].push(addr);
+            });
+
+            return pointsByScale;
+        }
+
+        function shareEditedMessage(textareaId, title) {
+            const editedMessage = document.getElementById(textareaId).value;
             if (navigator.share) {
                 navigator.share({
-                    title: '地震情報',
+                    title: title,
                     text: editedMessage
                 }).catch(console.error);
             } else {
-                alert('このブラウザは共有機能をサポートしていません。');
-            }
-        }
-
-        function shareEewComment() {
-            const comment = document.getElementById('eewComment').value;
-            if (navigator.share) {
-                navigator.share({
-                    title: '自作緊急地震速報文',
-                    text: comment
-                }).catch(console.error);
-            } else {
-                alert('このブラウザは共有機能をサポートしていません。');
-            }
-        }
-
-        function shareEditedEewMessage() {
-            const editedMessage = document.getElementById('editedEewMessage').value;
-            if (navigator.share) {
-                navigator.share({
-                    title: '緊急地震速報',
-                    text: editedMessage
-                }).catch(console.error);
-            } else {
-                alert('このブラウザは共有機能をサポートしていません。');
+                showAlert('このブラウザは共有機能をサポートしていません。');
             }
         }
 
         function scrollToEewSection() {
-            const eewSection = document.getElementById('eewInfo');
+            const eewSection = document.getElementById('eewSection');
             eewSection.scrollIntoView({ behavior: 'smooth' });
         }
+
+        document.getElementById('subscribeButton').addEventListener('click', () => {
+            subscribe().catch(err => console.error(err));
+        });
+
+        document.getElementById('testNotificationButton').addEventListener('click', () => {
+            sendTestNotification().catch(err => console.error(err));
+        });
+
+        document.getElementById('reloadButton').addEventListener('click', () => {
+            location.reload();
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchEarthquakeInfo();
             fetchEewInfo();
+            fetchAdminMessage(); // 管理者メッセージを取得
         });
     </script>
 </body>
