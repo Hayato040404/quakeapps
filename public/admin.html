@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ページ</title>
+    <style>
+        :root {
+            --system-blue: #007AFF;
+            --system-red: #FF3B30;
+            --system-green: #34C759;
+            --system-orange: #FF9500;
+            --system-gray: #8E8E93;
+            --background: #F2F2F7;
+            --card-background: #FFFFFF;
+            --text-primary: #000000;
+            --text-secondary: #6C6C70;
+            --divider: rgba(60, 60, 67, 0.1);
+            --shadow: rgba(0, 0, 0, 0.05);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #000000;
+                --card-background: #1C1C1E;
+                --text-primary: #FFFFFF;
+                --text-secondary: #98989E;
+                --divider: rgba(84, 84, 88, 0.65);
+                --shadow: rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .auth-container {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px var(--shadow);
+        }
+
+        .message-container {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px var(--shadow);
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--divider);
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: var(--card-background);
+            color: var(--text-primary);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: var(--system-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        button.danger {
+            background-color: var(--system-red);
+        }
+
+        button.success {
+            background-color: var(--system-green);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--system-blue);
+            text-decoration: none;
+        }
+
+        .current-message {
+            background-color: rgba(0, 122, 255, 0.1);
+            border-left: 4px solid var(--system-blue);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+        }
+
+        .current-message.warning {
+            background-color: rgba(255, 149, 0, 0.1);
+            border-left-color: var(--system-orange);
+        }
+
+        .current-message.error {
+            background-color: rgba(255, 59, 48, 0.1);
+            border-left-color: var(--system-red);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-visible {
+            background-color: var(--system-green);
+        }
+
+        .status-hidden {
+            background-color: var(--system-gray);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">地震情報アプリ - 管理者ページ</h1>
+        </div>
+
+        <div class="auth-container" id="authContainer">
+            <h2>認証</h2>
+            <p>管理者キーを入力してください</p>
+            <div class="form-group">
+                <input type="password" id="adminKeyInput" placeholder="管理者キー">
+            </div>
+            <button id="loginButton">ログイン</button>
+        </div>
+
+        <div class="message-container" id="messageContainer">
+            <h2>管理者メッセージ設定</h2>
+            
+            <div id="currentMessageDisplay" class="current-message">
+                <h3>現在のメッセージ</h3>
+                <div id="currentMessageStatus">
+                    <span class="status-indicator status-hidden"></span>
+                    メッセージは設定されていません
+                </div>
+                <div id="currentMessageText" style="margin-top: 10px; font-style: italic; color: var(--text-secondary);"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="messageText">メッセージ内容</label>
+                <textarea id="messageText" placeholder="ユーザーに表示するメッセージを入力してください"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="messageType">メッセージタイプ</label>
+                <select id="messageType">
+                    <option value="info">情報（青）</option>
+                    <option value="warning">警告（オレンジ）</option>
+                    <option value="error">エラー（赤）</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="messageVisible">
+                    <label class="form-label" for="messageVisible">メッセージを表示する</label>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="updateMessageButton" class="success">メッセージを更新</button>
+                <button id="hideMessageButton">メッセージを非表示</button>
+                <button id="refreshButton">現在の設定を更新</button>
+            </div>
+        </div>
+
+        <a href="/" class="back-link">← アプリに戻る</a>
+    </div>
+
+    <script>
+        let adminKey = '';
+        
+        document.getElementById('loginButton').addEventListener('click', () => {
+            adminKey = document.getElementById('adminKeyInput').value;
+            if (adminKey) {
+                fetchCurrentMessage();
+            }
+        });
+        
+        document.getElementById('updateMessageButton').addEventListener('click', updateMessage);
+        document.getElementById('hideMessageButton').addEventListener('click', hideMessage);
+        document.getElementById('refreshButton').addEventListener('click', fetchCurrentMessage);
+        
+        async function fetchCurrentMessage() {
+            try {
+                const response = await fetch(`/api/admin-message-full?key=${encodeURIComponent(adminKey)}`);
+                
+                if (response.status === 401) {
+                    alert('認証に失敗しました。正しい管理者キーを入力してください。');
+                    return;
+                }
+                
+                const messageData = await response.json();
+                
+                // 認証成功したら認証フォームを隠してメッセージ設定を表示
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('messageContainer').style.display = 'block';
+                
+                displayCurrentMessage(messageData);
+                
+                // フォームに現在の値を設定
+                document.getElementById('messageText').value = messageData.text || '';
+                document.getElementById('messageType').value = messageData.type || 'info';
+                document.getElementById('messageVisible').checked = messageData.isVisible || false;
+                
+            } catch (err) {
+                console.error('メッセージの取得に失敗しました:', err);
+                alert('メッセージの取得に失敗しました');
+            }
+        }
+        
+        function displayCurrentMessage(messageData) {
+            const statusElement = document.getElementById('currentMessageStatus');
+            const textElement = document.getElementById('currentMessageText');
+            const displayElement = document.getElementById('currentMessageDisplay');
+            
+            // ステータス表示を更新
+            const statusIndicator = statusElement.querySelector('.status-indicator');
+            
+            if (messageData.isVisible && messageData.text) {
+                statusIndicator.className = 'status-indicator status-visible';
+                statusElement.innerHTML = '<span class="status-indicator status-visible"></span>メッセージが表示されています';
+                textElement.textContent = messageData.text;
+                textElement.style.display = 'block';
+                
+                // メッセージタイプに応じてスタイルを変更
+                displayElement.className = `current-message ${messageData.type || 'info'}`;
+            } else {
+                statusIndicator.className = 'status-indicator status-hidden';
+                statusElement.innerHTML = '<span class="status-indicator status-hidden"></span>メッセージは非表示です';
+                textElement.style.display = 'none';
+                displayElement.className = 'current-message';
+            }
+            
+            if (messageData.timestamp) {
+                const timestamp = new Date(messageData.timestamp).toLocaleString('ja-JP');
+                textElement.innerHTML += `<br><small>最終更新: ${timestamp}</small>`;
+            }
+        }
+        
+        async function updateMessage() {
+            const text = document.getElementById('messageText').value;
+            const type = document.getElementById('messageType').value;
+            const isVisible = document.getElementById('messageVisible').checked;
+            
+            try {
+                const response = await fetch(`/api/admin-message?key=${encodeURIComponent(adminKey)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        type: type,
+                        isVisible: isVisible
+                    })
+                });
+                
+                if (response.status === 401) {
+                    alert('認証に失敗しました');
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('メッセージを更新しました');
+                    displayCurrentMessage(result.message);
+                } else {
+                    alert('メッセージの更新に失敗しました');
+                }
+            } catch (err) {
+                console.error('メッセージの更新に失敗しました:', err);
+                alert('メッセージの更新に失敗しました');
+            }
+        }
+        
+        async function hideMessage() {
+            try {
+                const response = await fetch(`/api/admin-message?key=${encodeURIComponent(adminKey)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: '',
+                        type: 'info',
+                        isVisible: false
+                    })
+                });
+                
+                if (response.status === 401) {
+                    alert('認証に失敗しました');
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('メッセージを非表示にしました');
+                    displayCurrentMessage(result.message);
+                    
+                    // フォームもクリア
+                    document.getElementById('messageText').value = '';
+                    document.getElementById('messageVisible').checked = false;
+                } else {
+                    alert('メッセージの非表示に失敗しました');
+                }
+            } catch (err) {
+                console.error('メッセージの非表示に失敗しました:', err);
+                alert('メッセージの非表示に失敗しました');
+            }
+        }
+    </script>
+</body>
+</html>
