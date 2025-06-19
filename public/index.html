@@ -625,7 +625,7 @@
 
         <div class="header">
             <h1 class="app-title">地震情報</h1>
-            <p class="app-subtitle">UIの改善。</p>
+            <p class="app-subtitle">システムの改善を行いました。</p>
             <div class="button-row">
                 <button id="subscribeButton" class="btn">通知を許可</button>
                 <button id="testNotificationButton" class="btn">テスト通知</button>
@@ -657,12 +657,12 @@
         <div class="list-group">
             <div class="coming-soon">
                 <div class="coming-soon-icon">🌤️</div>
-                <div class="coming-soon-text">Coming Soon</div>
+                <div class="coming-soon-text">Coming Soon..</div>
             </div>
         </div>
 
         <div class="footer">
-            一部のコードはv0によって書かれています
+            一部のコードはv0によって書かれています。
         </div>
     </div>
 
@@ -1133,9 +1133,27 @@
         }
 
         function formatEewMessage(data) {
-            return `【${data.Title} 推定最大震度${data.MaxIntensity}】\n(第${data.Serial}報)\n${data.OriginTime.split(' ')[1]}頃、${data.Hypocenter}を震源とする地震がありました。地震の規模はM${data.Magunitude}程度、震源の深さは約${data.Depth}km、最大震度${data.MaxIntensity}程度と推定されています。`;
-        }
+    // マグニチュードを小数1桁にする
+    let magnitude = data.Magunitude;
+    if (typeof magnitude === "number") {
+        magnitude = magnitude.toFixed(1);
+    } else if (typeof magnitude === "string" && magnitude !== "" && !isNaN(magnitude)) {
+        const n = parseFloat(magnitude);
+        magnitude = n.toFixed(1);
+    } else {
+        magnitude = "不明";
+    }
 
+    // 深さは常にkmで表示し、不明対応はしない
+    let depth = data.Depth;
+    if (typeof depth === "number" || (typeof depth === "string" && depth !== "" && !isNaN(depth))) {
+        depth = `約${parseFloat(depth)}km`;
+    } else {
+        depth = ""; // 異常時は空文字
+    }
+
+    return `【${data.Title} 推定最大震度${data.MaxIntensity}】\n(第${data.Serial}報)\n${data.OriginTime.split(' ')[1]}頃、${data.Hypocenter}を震源とする地震がありました。地震の規模はM${magnitude}程度、震源の深さは${depth}、最大震度${data.MaxIntensity}程度と推定されています。`;
+}
         function getScaleDescription(scale) {
             const scaleDescriptions = {
                 10: '1',
@@ -1154,13 +1172,13 @@
 
         function getTsunamiInfo(domesticTsunami) {
             const tsunamiMessages = {
-                "None": "この地震による津波の心配はありません。",
+                "None": "この地震による津波の心配はありません。", 
                 "Unknown": "不明",
-                "Checking": "津波の有無を調査中です。今後の情報に注意してください。",
+                "Checking": "津波の有無を調査中です。今後の情報に注意してください。",　
                 
-                "NonEffective": "若干の海面変動があるかもしれませんが、被害の心配はありません。",
-                "Watch": "現在、津波注意報を発表中です。",
-                "Warning": "津波警報等（大津波警報・津波警報あるいは津波注意報）を発表中です。"
+                "NonEffective": "この地震により、若干の海面変動があるかもしれませんが、被害の心配はありません。",
+                "Watch": "この地震により、現在、津波注意報を発表中です。",　
+                "Warning": "この地震により、津波警報等（大津波警報・津波警報あるいは津波注意報）を発表中です。"　
             };
             return tsunamiMessages[domesticTsunami] || "（津波情報なし）";
         }
