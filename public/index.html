@@ -854,14 +854,22 @@
                     });
                 });
             } else {
-                formattedMessage = `[地震情報]\n${date} ${timeStr}頃\n震源地：${hypocenter}\n最大震度：${maxScale}\n深さ：${depth}\n規模：M${magnitude}\n${tsunamiInfo}\n\n［各地の震度］`;
+              
+                formattedMessage = `[地震情報]\n${date} ${timeStr}頃\n震源地：${hypocenter}\n最大震度：${maxScale}\n深さ：${depth}\n規模：M${magnitude}\n${tsunamiInfo}`;
 
                 const scaleOrder = ['7', '6強', '6弱', '5強', '5弱','5弱以上と推定されるが震度情報を入手していない', '4', '3', '2', '1'];
                 const sortedScales = Object.keys(pointsByScale).sort((a, b) => {
                     return scaleOrder.indexOf(a) - scaleOrder.indexOf(b);
                 });
 
+              if (earthquake.issue && earthquake.issue.type === 'ScaleAndDestination') {
+                formattedMessage += `\n \n[各地の震度]`;}
+              
+              if (earthquake.issue && earthquake.issue.type === 'DetailScale') {
+                formattedMessage += `\n \n[各地の震度]`;}
+              
                 sortedScales.forEach(scale => {
+                 
                     formattedMessage += `\n《震度${scale}》`;
                     Object.keys(pointsByScale[scale]).forEach(pref => {
                         const uniqueCities = new Set();
@@ -875,6 +883,13 @@
                 if (freeFormComment) {
                     formattedMessage += `\n\n【情報】\n${freeFormComment}`;
                 }
+              if (earthquake.issue && earthquake.issue.correct === 'ScaleOnly') {
+                formattedMessage += `\n\n《震度の訂正がありました。》`;}
+              if (earthquake.issue && earthquake.issue.correct === 'DestinationOnly') {
+                formattedMessage += `\n\n《震源の訂正がありました。》`;}
+              if (earthquake.issue && earthquake.issue.correct === 'ScaleAndDestination') {
+                formattedMessage += `\n\n《震源・震度の訂正がありました。》`;}
+              
             }
 
             return formattedMessage;
@@ -907,7 +922,7 @@
 
         async function fetchEarthquakeInfo() {
             try {
-                const response = await fetch('https://api.p2pquake.net/v2/history?codes=551&limit=5');
+                const response = await fetch('https://api.p2pquake.net/v2/history?codes=551&limit=10');
                 earthquakeData = await response.json();
                 displayEarthquakeList(earthquakeData);
             } catch (error) {
