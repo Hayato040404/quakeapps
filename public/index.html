@@ -625,7 +625,7 @@
 
         <div class="header">
             <h1 class="app-title">地震情報</h1>
-            <p class="app-subtitle">システムの改善を行いました。</p>
+            <p class="app-subtitle">Version 5.0</p>
             <div class="button-row">
                 <button id="subscribeButton" class="btn">通知を許可</button>
                 <button id="testNotificationButton" class="btn">テスト通知</button>
@@ -1147,27 +1147,54 @@
             }, 300);
         }
 
-        function formatEewMessage(data) {
-    // マグニチュードを小数1桁にする
+function formatEewMessage(data) {
+    // マグニチュードを小数1桁にフォーマット
     let magnitude = data.Magunitude;
-    if (typeof magnitude === "number") {
-        magnitude = magnitude.toFixed(1);
-    } else if (typeof magnitude === "string" && magnitude !== "" && !isNaN(magnitude)) {
-        const n = parseFloat(magnitude);
-        magnitude = n.toFixed(1);
-    } else {
-        magnitude = "不明";
-    }
+    magnitude = typeof magnitude === "number" || (typeof magnitude === "string" && !isNaN(magnitude))
+        ? parseFloat(magnitude).toFixed(1)
+        : "不明";
 
-    // 深さは常にkmで表示し、不明対応はしない
+    // 深さをフォーマット
     let depth = data.Depth;
-    if (typeof depth === "number" || (typeof depth === "string" && depth !== "" && !isNaN(depth))) {
-        depth = `約${parseFloat(depth)}km`;
-    } else {
-        depth = ""; // 異常時は空文字
+    depth = typeof depth === "number" || (typeof depth === "string" && !isNaN(depth))
+        ? `約${parseFloat(depth)}km`
+        : "";
+
+    // 基本メッセージ
+    let message = `【${data.Title} 推定最大震度${data.MaxIntensity}】\n(第${data.Serial}報)\n${data.OriginTime.split(' ')[1]}頃、${data.Hypocenter}を震源とする地震がありました。地震の規模はM${magnitude}程度、震源の深さは${depth}、最大震度${data.MaxIntensity}程度と推定されています。`;
+
+    // WarnAreaが存在する場合
+    if (data.WarnArea && Array.isArray(data.WarnArea) && data.WarnArea.length > 0) {
+        // 警報地域の警告文を追加
+        const warningAreas = data.WarnArea.filter(area => area.Type === "警報").map(area => area.Chiiki);
+        if (warningAreas.length > 0) {
+            message += `\n\n⚠️${warningAreas.join('、')}では、強い揺れに警戒してください。⚠️`;
+        }
+
+        // 震度ごとに地域をグループ化
+        const areasByShindo = {};
+        data.WarnArea.forEach(area => {
+            const shindo = area.Shindo1;
+            if (shindo) {
+                areasByShindo[shindo] = areasByShindo[shindo] || [];
+                areasByShindo[shindo].push(area.Chiiki);
+            }
+        });
+
+        // 震度を降順でソート
+        const shindoOrder = ['7', '6強', '6弱', '5強', '5弱', '4', '3', '2', '1'];
+        const sortedShindos = Object.keys(areasByShindo).sort((a, b) => shindoOrder.indexOf(a) - shindoOrder.indexOf(b));
+
+        // 予想される震度を追加
+        if (sortedShindos.length > 0) {
+            message += `\n\n【予想される震度】`;
+            sortedShindos.forEach(shindo => {
+                message += `\n《最大震度${shindo}》\n${areasByShindo[shindo].join('、')}`;
+            });
+        }
     }
 
-    return `【${data.Title} 推定最大震度${data.MaxIntensity}】\n(第${data.Serial}報)\n${data.OriginTime.split(' ')[1]}頃、${data.Hypocenter}を震源とする地震がありました。地震の規模はM${magnitude}程度、震源の深さは${depth}、最大震度${data.MaxIntensity}程度と推定されています。`;
+    return message;
 }
         function getScaleDescription(scale) {
             const scaleDescriptions = {
