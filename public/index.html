@@ -209,6 +209,48 @@
             -webkit-backdrop-filter: blur(10px);
         }
 
+        .tap-hint {
+            padding: 0 16px 12px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-align: center;
+            background-color: var(--background);
+            position: sticky;
+            top: 115px;
+            z-index: 90;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .tap-hint-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: var(--system-blue);
+            opacity: 0.6;
+            animation: tapPulse 2s infinite;
+        }
+
+        @keyframes tapPulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+        }
+
         .list-group {
             margin-bottom: 24px;
             background-color: var(--card-background);
@@ -221,10 +263,12 @@
             padding: 16px;
             border-bottom: 1px solid var(--divider);
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            position: relative;
+            overflow: hidden;
         }
 
         .list-item:last-child {
@@ -235,9 +279,32 @@
             background-color: var(--active-background);
         }
 
+        .list-item::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background-color: rgba(0, 122, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .list-item.tap-animation::before {
+            width: 200px;
+            height: 200px;
+            opacity: 0;
+        }
+
         .list-item-content {
             flex: 1;
             min-width: 0;
+            position: relative;
+            z-index: 2;
         }
 
         .list-item-header {
@@ -275,6 +342,8 @@
             align-items: center;
             gap: 8px;
             margin-left: 12px;
+            position: relative;
+            z-index: 2;
         }
 
         .copy-button {
@@ -599,6 +668,84 @@
             transform: scale(1.1);
         }
 
+        /* 初回アクセス時の通知許可モーダル */
+        .notification-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .notification-modal.show {
+            display: flex;
+        }
+
+        .notification-modal-content {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 320px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification-modal-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .notification-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .notification-modal-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .notification-modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .notification-modal-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .notification-modal-button.primary {
+            background-color: var(--system-blue);
+            color: white;
+        }
+
+        .notification-modal-button.secondary {
+            background-color: var(--system-gray5);
+            color: var(--text-primary);
+        }
+
+        .notification-modal-button:active {
+            transform: scale(0.96);
+        }
+
         /* Ensure proper contrast in both modes */
         @media (prefers-color-scheme: light) {
             .copy-toast {
@@ -625,7 +772,7 @@
 
         <div class="header">
             <h1 class="app-title">地震情報</h1>
-            <p class="app-subtitle">Version 5.0</p>
+            <p class="app-subtitle">Version 5.1 - 自動通知対応</p>
             <div class="button-row">
                 <button id="subscribeButton" class="btn">通知を許可</button>
                 <button id="testNotificationButton" class="btn">テスト通知</button>
@@ -636,6 +783,10 @@
 
         <div class="section-header">地震情報</div>
         <div class="section-subheader">最新の地震情報を表示しています</div>
+        <div class="tap-hint">
+            <span class="tap-hint-icon"></span>
+            タップして詳細を表示
+        </div>
         <div class="list-group" id="earthquakeList">
             <div class="loading-indicator">
                 <div class="spinner"></div>
@@ -645,6 +796,10 @@
 
         <div class="section-header" id="eewSection">緊急地震速報</div>
         <div class="section-subheader">緊急地震速報の最新情報</div>
+        <div class="tap-hint">
+            <span class="tap-hint-icon"></span>
+            タップして詳細を表示
+        </div>
         <div class="list-group" id="eewList">
             <div class="loading-indicator">
                 <div class="spinner"></div>
@@ -663,6 +818,22 @@
 
         <div class="footer">
             一部のコードはv0によって書かれています。
+        </div>
+    </div>
+
+    <!-- 初回アクセス時の通知許可モーダル -->
+    <div id="notificationModal" class="notification-modal">
+        <div class="notification-modal-content">
+            <div class="notification-modal-icon">🔔</div>
+            <div class="notification-modal-title">地震情報の通知</div>
+            <div class="notification-modal-text">
+                地震情報や緊急地震速報をリアルタイムで受け取りますか？<br>
+                いつでも設定から変更できます。
+            </div>
+            <div class="notification-modal-buttons">
+                <button class="notification-modal-button secondary" onclick="dismissNotificationModal()">後で</button>
+                <button class="notification-modal-button primary" onclick="enableNotificationsFromModal()">許可する</button>
+            </div>
         </div>
     </div>
 
@@ -708,6 +879,44 @@
         const publicVapidKey = 'BC1T1-o4f9vLJ11ngQXOZTdKY8xd38vUyWeWyPosJ7JDJxnCPrAGtJZE_CUW4dqdh60eEUf5G-qzWjaojsSMer0';
         let earthquakeData = [];
         let eewData = null;
+        let isFirstAccess = false;
+
+        // 初回アクセス判定とモーダル表示
+        async function checkFirstAccess() {
+            try {
+                const response = await fetch('/api/first-access');
+                const data = await response.json();
+                
+                if (data.isFirstAccess && data.autoSubscriptionEnabled) {
+                    isFirstAccess = true;
+                    // 少し遅延してモーダルを表示
+                    setTimeout(() => {
+                        document.getElementById('notificationModal').classList.add('show');
+                    }, 1500);
+                }
+            } catch (error) {
+                console.error('初回アクセス判定に失敗しました:', error);
+            }
+        }
+
+        // 通知許可モーダルを閉じる
+        function dismissNotificationModal() {
+            document.getElementById('notificationModal').classList.remove('show');
+        }
+
+        // モーダルから通知を許可
+        async function enableNotificationsFromModal() {
+            dismissNotificationModal();
+            await subscribe();
+        }
+
+        // タップアニメーション効果
+        function addTapAnimation(element) {
+            element.classList.add('tap-animation');
+            setTimeout(() => {
+                element.classList.remove('tap-animation');
+            }, 300);
+        }
 
         // 管理者メッセージを取得して表示する関数
         async function fetchAdminMessage() {
@@ -756,6 +965,12 @@
                     });
 
                     showAlert('通知が許可されました！');
+                    
+                    // ボタンのテキストを更新
+                    const subscribeButton = document.getElementById('subscribeButton');
+                    subscribeButton.textContent = '通知設定済み';
+                    subscribeButton.style.backgroundColor = 'var(--system-green)';
+                    
                 } catch (error) {
                     console.error('通知の許可に失敗しました:', error);
                     showAlert('通知の許可に失敗しました。');
@@ -983,7 +1198,7 @@
                 listItem.className = 'list-item';
                 
                 listItem.innerHTML = `
-                    <div class="list-item-content" onclick="showEarthquakeDetail(${index})">
+                    <div class="list-item-content" onclick="showEarthquakeDetail(${index}); addTapAnimation(this.parentElement)">
                         <div class="list-item-header">
                             <div class="list-item-title">
                                 <span class="scale-indicator scale-${maxScale}">震${maxScale}</span>
@@ -1038,7 +1253,7 @@
             }
             
             listItem.innerHTML = `
-                <div class="list-item-content" onclick="showEewDetail()">
+                <div class="list-item-content" onclick="showEewDetail(); addTapAnimation(this.parentElement)">
                     <div class="list-item-header">
                         <div class="list-item-title">
                             <span class="badge ${badgeClass}">${badgeText}</span>
@@ -1304,6 +1519,7 @@ function formatEewMessage(data) {
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            checkFirstAccess(); // 初回アクセス判定
             fetchEarthquakeInfo();
             fetchEewInfo();
             fetchAdminMessage(); // 管理者メッセージを取得
