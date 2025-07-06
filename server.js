@@ -24,11 +24,6 @@ let adminMessage = {
   timestamp: null
 };
 
-// 通知許可リストとアクセス履歴をメモリ内で管理
-let subscriptions = [];
-let accessHistory = new Set(); // IPアドレスやセッションIDを記録
-let autoSubscriptionEnabled = true; // 自動通知許可機能のフラグ
-
 // VAPID keys for web push notifications
 const vapidKeys = {
   publicKey: 'BC1T1-o4f9vLJ11ngQXOZTdKY8xd38vUyWeWyPosJ7JDJxnCPrAGtJZE_CUW4dqdh60eEUf5G-qzWjaojsSMer0',
@@ -44,34 +39,13 @@ webPush.setVapidDetails(
 const app = express();
 app.use(bodyParser.json());
 
+let subscriptions = [];
+
 // HTTP サーバーを作成して Render が要求するポートをリッスン
 const server = http.createServer(app);
 
 server.listen(PORT, () => {
   console.log(`HTTP server is running on port ${PORT}`);
-});
-
-// 初回アクセス判定とアクセス履歴記録のミドルウェア
-app.use((req, res, next) => {
-  const clientIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
-  const userAgent = req.headers['user-agent'];
-  const clientId = `${clientIP}-${userAgent}`;
-  
-  // 初回アクセスかどうかを判定
-  req.isFirstAccess = !accessHistory.has(clientId);
-  
-  // アクセス履歴に記録
-  accessHistory.add(clientId);
-  
-  next();
-});
-
-// 初回アクセス判定API
-app.get('/api/first-access', (req, res) => {
-  res.json({ 
-    isFirstAccess: req.isFirstAccess,
-    autoSubscriptionEnabled: autoSubscriptionEnabled
-  });
 });
 
 // 管理者メッセージを設定するAPI
@@ -115,21 +89,6 @@ app.get('/api/admin-message-full', (req, res) => {
   }
   
   res.status(200).json(adminMessage);
-});
-
-// 自動通知許可設定API（管理者用）
-app.post('/api/auto-subscription', (req, res) => {
-  const adminKey = req.query.key;
-  
-  if (adminKey !== '0429') {
-    return res.status(401).json({ error: '認証に失敗しました' });
-  }
-  
-  const { enabled } = req.body;
-  autoSubscriptionEnabled = enabled !== undefined ? enabled : true;
-  
-  console.log('Auto subscription setting updated:', autoSubscriptionEnabled);
-  res.status(200).json({ success: true, autoSubscriptionEnabled });
 });
 
 // 管理者ページを提供
@@ -409,7 +368,6 @@ connectEewWebSocket();
 app.post('/subscribe', (req, res) => {
   const subscription = req.body;
   subscriptions.push(subscription);
-  console.log('New subscription added. Total subscriptions:', subscriptions.length);
   res.status(201).json({});
 });
 
