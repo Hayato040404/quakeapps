@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -20,6 +19,7 @@
             --system-gray4: #D1D1D6;
             --system-gray5: #E5E5EA;
             --system-gray6: #F2F2F7;
+            --system-purple: #AF52DE;
         }
 
         /* Light mode (default) */
@@ -326,6 +326,18 @@
             background-color: var(--system-gray);
         }
 
+        .badge.forecast {
+            background-color: var(--system-blue);
+        }
+
+        .badge.watch {
+            background-color: var(--system-orange);
+        }
+
+        .badge.major {
+            background-color: var(--system-purple);
+        }
+
         .coming-soon {
             text-align: center;
             padding: 32px 16px;
@@ -520,6 +532,24 @@
         .scale-6強 { background-color: #D46B08; }
         .scale-7 { background-color: #F5222D; }
 
+        .tsunami-forecast {
+            background-color: rgba(0, 122, 255, 0.1);
+            border-left: 4px solid var(--system-blue);
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 4px;
+            color: var(--system-blue);
+        }
+
+        .tsunami-watch {
+            background-color: rgba(255, 149, 0, 0.1);
+            border-left: 4px solid var(--system-orange);
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 4px;
+            color: var(--system-orange);
+        }
+
         .tsunami-warning {
             background-color: rgba(245, 34, 45, 0.1);
             border-left: 4px solid var(--system-red);
@@ -529,22 +559,13 @@
             color: var(--system-red);
         }
 
-        .no-tsunami {
-            background-color: rgba(82, 196, 26, 0.1);
-            border-left: 4px solid var(--system-green);
+        .tsunami-major {
+            background-color: rgba(175, 82, 222, 0.1);
+            border-left: 4px solid var(--system-purple);
             padding: 12px;
             margin-top: 12px;
             border-radius: 4px;
-            color: var(--system-green);
-        }
-
-        .checking-tsunami {
-            background-color: rgba(250, 173, 20, 0.1);
-            border-left: 4px solid var(--system-orange);
-            padding: 12px;
-            margin-top: 12px;
-            border-radius: 4px;
-            color: var(--system-orange);
+            color: var(--system-purple);
         }
 
         .copy-toast {
@@ -576,7 +597,6 @@
             margin-top: 40px;
         }
 
-        /* 管理者メニューボタン用のスタイル */
         .admin-button {
             position: fixed;
             bottom: 20px;
@@ -600,7 +620,6 @@
             transform: scale(1.1);
         }
 
-        /* Ensure proper contrast in both modes */
         @media (prefers-color-scheme: light) {
             .copy-toast {
                 background-color: rgba(0, 0, 0, 0.8);
@@ -618,7 +637,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- 管理者メッセージ表示エリア -->
         <div id="adminMessage" class="admin-message">
             <button class="admin-message-close" onclick="hideAdminMessage()">×</button>
             <div id="adminMessageText"></div>
@@ -626,11 +644,12 @@
 
         <div class="header">
             <h1 class="app-title">地震情報</h1>
-            <p class="app-subtitle">Version 5.0</p>
+            <p class="app-subtitle">Version 6.1</p>
             <div class="button-row">
                 <button id="subscribeButton" class="btn">通知を許可</button>
                 <button id="testNotificationButton" class="btn">テスト通知</button>
                 <button class="btn secondary" onclick="scrollToEewSection()">緊急地震速報へ</button>
+                <button class="btn secondary" onclick="scrollToTsunamiSection()">津波情報へ</button>
                 <button id="reloadButton" class="btn secondary">再読み込み</button>
             </div>
         </div>
@@ -653,6 +672,15 @@
             </div>
         </div>
 
+        <div class="section-header" id="tsunamiSection">津波情報</div>
+        <div class="section-subheader">最新の津波予報や警報情報</div>
+        <div class="list-group" id="tsunamiList">
+            <div class="loading-indicator">
+                <div class="spinner"></div>
+                <div>津波情報を取得中...</div>
+            </div>
+        </div>
+
         <div class="section-header">気象情報</div>
         <div class="section-subheader">天気予報や気象警報などの情報</div>
         <div class="list-group">
@@ -667,10 +695,8 @@
         </div>
     </div>
 
-    <!-- コピー完了トースト -->
     <div id="copyToast" class="copy-toast">コピーしました</div>
 
-    <!-- 地震情報詳細表示用のテンプレート -->
     <div id="earthquakeDetailTemplate" class="detail-view">
         <div class="detail-header">
             <button class="back-button" onclick="closeDetail('earthquakeDetailTemplate')">戻る</button>
@@ -686,7 +712,6 @@
         </div>
     </div>
 
-    <!-- 緊急地震速報詳細表示用のテンプレート -->
     <div id="eewDetailTemplate" class="detail-view">
         <div class="detail-header">
             <button class="back-button" onclick="closeDetail('eewDetailTemplate')">戻る</button>
@@ -702,15 +727,29 @@
         </div>
     </div>
 
-    <!-- 管理者メニューへのリンク -->
+    <div id="tsunamiDetailTemplate" class="detail-view">
+        <div class="detail-header">
+            <button class="back-button" onclick="closeDetail('tsunamiDetailTemplate')">戻る</button>
+            <div class="detail-title">津波情報</div>
+        </div>
+        <div class="detail-content">
+            <div class="detail-info" id="tsunamiDetailInfo"></div>
+            <div class="edit-section">
+                <div class="edit-label">通知メッセージを編集</div>
+                <textarea class="textarea-ios" id="tsunamiDetailTextarea"></textarea>
+                <button class="action-button" id="tsunamiShareButton">編集したメッセージを共有</button>
+            </div>
+        </div>
+    </div>
+
     <a href="/admin" class="admin-button" title="管理者メニュー">⚙️</a>
 
     <script>
         const publicVapidKey = 'BC1T1-o4f9vLJ11ngQXOZTdKY8xd38vUyWeWyPosJ7JDJxnCPrAGtJZE_CUW4dqdh60eEUf5G-qzWjaojsSMer0';
         let earthquakeData = [];
         let eewData = null;
+        let tsunamiData = [];
 
-        // 管理者メッセージを取得して表示する関数
         async function fetchAdminMessage() {
             try {
                 const response = await fetch('/api/admin-message');
@@ -724,7 +763,6 @@
             }
         }
 
-        // 管理者メッセージを表示する関数
         function showAdminMessage(text, type = 'info') {
             const messageElement = document.getElementById('adminMessage');
             const textElement = document.getElementById('adminMessageText');
@@ -733,7 +771,6 @@
             messageElement.className = `admin-message ${type} show`;
         }
 
-        // 管理者メッセージを非表示にする関数
         function hideAdminMessage() {
             const messageElement = document.getElementById('adminMessage');
             messageElement.classList.remove('show');
@@ -805,7 +842,6 @@
                 if (navigator.clipboard && window.isSecureContext) {
                     await navigator.clipboard.writeText(text);
                 } else {
-                    // フォールバック: 古いブラウザ対応
                     const textArea = document.createElement('textarea');
                     textArea.value = text;
                     textArea.style.position = 'fixed';
@@ -855,22 +891,22 @@
                     });
                 });
             } else {
-              
                 formattedMessage = `[地震情報]\n${date} ${timeStr}頃\n震源地：${hypocenter}\n最大震度：${maxScale}\n深さ：${depth}\n規模：M${magnitude}\n${tsunamiInfo}`;
 
-                const scaleOrder = ['7', '6強', '6弱', '5強', '5弱','5弱以上と推定されるが震度情報を入手していない', '4', '3', '2', '1'];
+                const scaleOrder = ['7', '6強', '6弱', '5強', '5弱', '5弱以上と推定されるが震度情報を入手していない', '4', '3', '2', '1'];
                 const sortedScales = Object.keys(pointsByScale).sort((a, b) => {
                     return scaleOrder.indexOf(a) - scaleOrder.indexOf(b);
                 });
 
-              if (earthquake.issue && earthquake.issue.type === 'ScaleAndDestination') {
-                formattedMessage += `\n \n[各地の震度]`;}
+                if (earthquake.issue && earthquake.issue.type === 'ScaleAndDestination') {
+                    formattedMessage += `\n \n[各地の震度]`;
+                }
               
-              if (earthquake.issue && earthquake.issue.type === 'DetailScale') {
-                formattedMessage += `\n \n[各地の震度]`;}
+                if (earthquake.issue && earthquake.issue.type === 'DetailScale') {
+                    formattedMessage += `\n \n[各地の震度]`;
+                }
               
                 sortedScales.forEach(scale => {
-                 
                     formattedMessage += `\n《震度${scale}》`;
                     Object.keys(pointsByScale[scale]).forEach(pref => {
                         const uniqueCities = new Set();
@@ -884,13 +920,15 @@
                 if (freeFormComment) {
                     formattedMessage += `\n\n【情報】\n${freeFormComment}`;
                 }
-              if (earthquake.issue && earthquake.issue.correct === 'ScaleOnly') {
-                formattedMessage += `\n\n《震度の訂正がありました。》`;}
-              if (earthquake.issue && earthquake.issue.correct === 'DestinationOnly') {
-                formattedMessage += `\n\n《震源の訂正がありました。》`;}
-              if (earthquake.issue && earthquake.issue.correct === 'ScaleAndDestination') {
-                formattedMessage += `\n\n《震源・震度の訂正がありました。》`;}
-              
+                if (earthquake.issue && earthquake.issue.correct === 'ScaleOnly') {
+                    formattedMessage += `\n\n《震度の訂正がありました。》`;
+                }
+                if (earthquake.issue && earthquake.issue.correct === 'DestinationOnly') {
+                    formattedMessage += `\n\n《震源の訂正がありました。》`;
+                }
+                if (earthquake.issue && earthquake.issue.correct === 'ScaleAndDestination') {
+                    formattedMessage += `\n\n《震源・震度の訂正がありました。》`;
+                }
             }
 
             return formattedMessage;
@@ -906,6 +944,69 @@
                 formattedMessage += "\n※この緊急地震速報は精度が低い可能性があります※";
             }
             
+            return formattedMessage;
+        }
+
+        function generateDetailedTsunamiText(tsunami, detailedData) {
+            const time = new Date(tsunami.at);
+            const date = time.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' });
+            const timeStr = time.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+
+            let formattedMessage = `[津波情報]\n${date} ${timeStr}頃\n震源地：${tsunami.anm || '不明'}\n規模：${tsunami.mag ? 'M' + tsunami.mag : '不明'}`;
+
+            if (!detailedData || !detailedData.Body || !detailedData.Body.Tsunami || !detailedData.Body.Tsunami.Forecast) {
+                const kind = tsunami.kind && tsunami.kind.length > 0 ? tsunami.kind[0].kind : '不明';
+                formattedMessage += `\n\n【津波情報】\n${kind}\n詳細情報が取得できませんでした。`;
+                return formattedMessage;
+            }
+
+            const items = Array.isArray(detailedData.Body.Tsunami.Forecast.Item) 
+                ? detailedData.Body.Tsunami.Forecast.Item 
+                : [detailedData.Body.Tsunami.Forecast.Item].filter(item => item);
+
+            const forecasts = [];
+            const watches = [];
+            const warnings = [];
+            const majorWarnings = [];
+
+            items.forEach(item => {
+                const areaName = item.Area?.Name || '不明';
+                const maxHeight = item.MaxHeight?.TsunamiHeight ? `${item.MaxHeight.TsunamiHeight}m` : '不明';
+                const category = typeof item.Category?.Kind === 'string' ? item.Category.Kind : '不明';
+
+                if (category.includes('予報')) {
+                    forecasts.push(`${areaName}　〈${maxHeight}〉`);
+                } else if (category.includes('注意報')) {
+                    watches.push(`${areaName}　〈${maxHeight}〉`);
+                } else if (category.includes('警報') && !category.includes('大津波')) {
+                    warnings.push(`${areaName}　〈${maxHeight}〉`);
+                } else if (category.includes('大津波')) {
+                    majorWarnings.push(`${areaName}　〈${maxHeight}〉`);
+                } else {
+                    forecasts.push(`${areaName}　〈${maxHeight}〉`); // デフォルトは予報として扱う
+                }
+            });
+
+            if (forecasts.length > 0) {
+                formattedMessage += `\n\n【津波情報🟦】\n津波予報を発表しました。\n若干の界面変動に注意してください。\n［対象地域］\n${forecasts.join('\n')}`;
+            }
+
+            if (watches.length > 0) {
+                formattedMessage += `\n\n【津波注意報🟨】\n津波注意報を発表しています。\n海や川から離れてください。\n［対象地域］\n${watches.join('\n')}`;
+            }
+
+            if (warnings.length > 0) {
+                formattedMessage += `\n\n【津波警報🟥】\n津波警報を発表しています！\n高台や近くのビルへ避難！\n【対象地域】\n${warnings.join('\n')}\n津波は1mでも人や物を押し倒します！`;
+            }
+
+            if (majorWarnings.length > 0) {
+                formattedMessage += `\n\n【大津波警報🟪】\n大津波警報を発表しています！\n今すぐ高台やビルに避難！\n［対象地域］\n${majorWarnings.join('\n')}\n⚠絶対に避難⚠`;
+            }
+
+            if (detailedData.Comments && detailedData.Comments.WarningComment && detailedData.Comments.WarningComment.Text) {
+                formattedMessage += `\n\n【情報】\n${detailedData.Comments.WarningComment.Text}`;
+            }
+
             return formattedMessage;
         }
 
@@ -948,6 +1049,34 @@
                     <div class="empty-state">
                         <div class="empty-icon">⚠️</div>
                         <div>緊急地震速報の取得に失敗しました</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function fetchTsunamiInfo() {
+            try {
+                const response = await fetch('https://www.jma.go.jp/bosai/tsunami/data/list.json');
+                const tsunamiList = await response.json();
+                tsunamiData = [];
+                
+                for (const tsunami of tsunamiList.slice(0, 10)) {
+                    try {
+                        const detailResponse = await fetch(`https://www.jma.go.jp/bosai/tsunami/data/${tsunami.json}`);
+                        const detailData = await detailResponse.json();
+                        tsunamiData.push({ summary: tsunami, details: detailData });
+                    } catch (detailError) {
+                        console.error(`Error fetching tsunami details for ${tsunami.json}:`, detailError);
+                        tsunamiData.push({ summary: tsunami, details: null });
+                    }
+                }
+                displayTsunamiList(tsunamiData);
+            } catch (error) {
+                console.error('Error fetching tsunami information:', error);
+                document.getElementById('tsunamiList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🌊</div>
+                        <div>津波情報の取得に失敗しました</div>
                     </div>
                 `;
             }
@@ -1064,6 +1193,92 @@
             container.appendChild(listItem);
         }
 
+        function displayTsunamiList(tsunamis) {
+            const container = document.getElementById('tsunamiList');
+            container.innerHTML = '';
+            
+            if (!tsunamis || tsunamis.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🌊</div>
+                        <div>現在、表示する津波情報はありません</div>
+                    </div>
+                `;
+                return;
+            }
+
+            tsunamis.forEach((tsunami, index) => {
+                const summary = tsunami.summary;
+                const time = new Date(summary.at);
+                const date = time.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' });
+                const timeStr = time.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+                
+                const hypocenter = summary.anm || '不明';
+                const magnitude = summary.mag ? `M${summary.mag}` : '不明';
+                let badgeClass = 'forecast';
+                let badgeText = '津波予報';
+                
+                const items = tsunami.details?.Body?.Tsunami?.Forecast?.Item;
+                if (items) {
+                    const categories = Array.isArray(items) 
+                        ? items.map(item => typeof item.Category?.Kind === 'string' ? item.Category.Kind : '不明')
+                        : [typeof items.Category?.Kind === 'string' ? items.Category.Kind : '不明'];
+                    
+                    if (categories.some(kind => kind.includes('大津波'))) {
+                        badgeClass = 'major';
+                        badgeText = '大津波警報';
+                    } else if (categories.some(kind => kind.includes('警報'))) {
+                        badgeClass = 'warning';
+                        badgeText = '津波警報';
+                    } else if (categories.some(kind => kind.includes('注意報'))) {
+                        badgeClass = 'watch';
+                        badgeText = '津波注意報';
+                    }
+                } else if (summary.kind && summary.kind.length > 0) {
+                    const kind = summary.kind[0].kind;
+                    if (kind.includes('大津波')) {
+                        badgeClass = 'major';
+                        badgeText = '大津波警報';
+                    } else if (kind.includes('警報')) {
+                        badgeClass = 'warning';
+                        badgeText = '津波警報';
+                    } else if (kind.includes('注意報')) {
+                        badgeClass = 'watch';
+                        badgeText = '津波注意報';
+                    } else {
+                        badgeClass = 'forecast';
+                        badgeText = kind;
+                    }
+                }
+
+                const listItem = document.createElement('div');
+                listItem.className = 'list-item';
+                
+                listItem.innerHTML = `
+                    <div class="list-item-content" onclick="showTsunamiDetail(${index})">
+                        <div class="list-item-header">
+                            <div class="list-item-title">
+                                <span class="badge ${badgeClass}">${badgeText}</span>
+                                ${date} ${timeStr}
+                            </div>
+                        </div>
+                        <div class="list-item-subtitle">${hypocenter} ${magnitude}</div>
+                        <div class="list-item-details">
+                            ${summary.ift} - 津波情報
+                        </div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="copy-button" onclick="event.stopPropagation(); copyTsunamiInfo(${index}, this)" title="詳細情報をコピー">
+                            📋
+                        </button>
+                        <span class="chevron">›</span>
+                    </div>
+                `;
+                
+                container.appendChild(listItem);
+            });
+        }
+
         async function copyEarthquakeInfo(index, button) {
             const earthquake = earthquakeData[index];
             const detailedText = generateDetailedEarthquakeText(earthquake);
@@ -1095,11 +1310,25 @@
             }
         }
 
+        async function copyTsunamiInfo(index, button) {
+            const tsunami = tsunamiData[index];
+            const detailedText = generateDetailedTsunamiText(tsunami.summary, tsunami.details);
+            
+            const success = await copyToClipboard(detailedText);
+            if (success) {
+                button.classList.add('copied');
+                button.innerHTML = '✓';
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = '📋';
+                }, 2000);
+            }
+        }
+
         function showEarthquakeDetail(index) {
             const earthquake = earthquakeData[index];
             const formattedMessage = generateDetailedEarthquakeText(earthquake);
 
-            // 津波情報のスタイル付き表示
             let tsunamiHtml = '';
             const tsunamiType = earthquake.earthquake.domesticTsunami;
             
@@ -1137,6 +1366,56 @@
             document.body.style.overflow = 'hidden';
         }
 
+        function showTsunamiDetail(index) {
+            const tsunami = tsunamiData[index];
+            const formattedMessage = generateDetailedTsunamiText(tsunami.summary, tsunami.details);
+
+            let kindHtml = '';
+            const items = tsunami.details?.Body?.Tsunami?.Forecast?.Item;
+            let badgeClass = 'tsunami-forecast';
+            let badgeText = '津波予報';
+
+            if (items) {
+                const categories = Array.isArray(items) 
+                    ? items.map(item => typeof item.Category?.Kind === 'string' ? item.Category.Kind : '不明')
+                    : [typeof items.Category?.Kind === 'string' ? items.Category.Kind : '不明'];
+                
+                if (categories.some(kind => kind.includes('大津波'))) {
+                    badgeClass = 'tsunami-major';
+                    badgeText = '大津波警報';
+                } else if (categories.some(kind => kind.includes('警報'))) {
+                    badgeClass = 'tsunami-warning';
+                    badgeText = '津波警報';
+                } else if (categories.some(kind => kind.includes('注意報'))) {
+                    badgeClass = 'tsunami-watch';
+                    badgeText = '津波注意報';
+                }
+            } else if (tsunami.summary.kind && tsunami.summary.kind.length > 0) {
+                const kind = tsunami.summary.kind[0].kind;
+                if (kind.includes('大津波')) {
+                    badgeClass = 'tsunami-major';
+                    badgeText = '大津波警報';
+                } else if (kind.includes('警報')) {
+                    badgeClass = 'tsunami-warning';
+                    badgeText = '津波警報';
+                } else if (kind.includes('注意報')) {
+                    badgeClass = 'tsunami-watch';
+                    badgeText = '津波注意報';
+                }
+            }
+
+            kindHtml = `<div class="${badgeClass}">${badgeText}</div>`;
+
+            document.getElementById('tsunamiDetailInfo').innerHTML = formattedMessage.replace(/\n/g, '<br>') + kindHtml;
+            document.getElementById('tsunamiDetailTextarea').value = formattedMessage;
+            
+            const shareButton = document.getElementById('tsunamiShareButton');
+            shareButton.onclick = () => shareEditedMessage('tsunamiDetailTextarea', '津波情報');
+            
+            document.getElementById('tsunamiDetailTemplate').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
         function closeDetail(templateId) {
             const template = document.getElementById(templateId);
             template.style.animation = 'slideOut 0.3s ease forwards';
@@ -1148,55 +1427,48 @@
             }, 300);
         }
 
-function formatEewMessage(data) {
-    // マグニチュードを小数1桁にフォーマット
-    let magnitude = data.Magunitude;
-    magnitude = typeof magnitude === "number" || (typeof magnitude === "string" && !isNaN(magnitude))
-        ? parseFloat(magnitude).toFixed(1)
-        : "不明";
+        function formatEewMessage(data) {
+            let magnitude = data.Magunitude;
+            magnitude = typeof magnitude === "number" || (typeof magnitude === "string" && !isNaN(magnitude))
+                ? parseFloat(magnitude).toFixed(1)
+                : "不明";
 
-    // 深さをフォーマット
-    let depth = data.Depth;
-    depth = typeof depth === "number" || (typeof depth === "string" && !isNaN(depth))
-        ? `約${parseFloat(depth)}km`
-        : "";
+            let depth = data.Depth;
+            depth = typeof depth === "number" || (typeof depth === "string" && !isNaN(depth))
+                ? `約${parseFloat(depth)}km`
+                : "";
 
-    // 基本メッセージ
-    let message = `【${data.Title} 推定最大震度${data.MaxIntensity}】\n(第${data.Serial}報)\n${data.OriginTime.split(' ')[1]}頃、${data.Hypocenter}を震源とする地震がありました。地震の規模はM${magnitude}程度、震源の深さは${depth}、最大震度${data.MaxIntensity}程度と推定されています。`;
+            let message = `【${data.Title} 推定最大震度${data.MaxIntensity}】\n(第${data.Serial}報)\n${data.OriginTime.split(' ')[1]}頃、${data.Hypocenter}を震源とする地震がありました。地震の規模はM${magnitude}程度、震源の深さは${depth}、最大震度${data.MaxIntensity}程度と推定されています。`;
 
-    // WarnAreaが存在する場合
-    if (data.WarnArea && Array.isArray(data.WarnArea) && data.WarnArea.length > 0) {
-        // 警報地域の警告文を追加
-        const warningAreas = data.WarnArea.filter(area => area.Type === "警報").map(area => area.Chiiki);
-        if (warningAreas.length > 0) {
-            message += `\n\n⚠️${warningAreas.join('、')}では、強い揺れに警戒してください。⚠️`;
-        }
+            if (data.WarnArea && Array.isArray(data.WarnArea) && data.WarnArea.length > 0) {
+                const warningAreas = data.WarnArea.filter(area => area.Type === "警報").map(area => area.Chiiki);
+                if (warningAreas.length > 0) {
+                    message += `\n\n⚠️${warningAreas.join('、')}では、強い揺れに警戒してください。⚠️`;
+                }
 
-        // 震度ごとに地域をグループ化
-        const areasByShindo = {};
-        data.WarnArea.forEach(area => {
-            const shindo = area.Shindo1;
-            if (shindo) {
-                areasByShindo[shindo] = areasByShindo[shindo] || [];
-                areasByShindo[shindo].push(area.Chiiki);
+                const areasByShindo = {};
+                data.WarnArea.forEach(area => {
+                    const shindo = area.Shindo1;
+                    if (shindo) {
+                        areasByShindo[shindo] = areasByShindo[shindo] || [];
+                        areasByShindo[shindo].push(area.Chiiki);
+                    }
+                });
+
+                const shindoOrder = ['7', '6強', '6弱', '5強', '5弱', '4', '3', '2', '1'];
+                const sortedShindos = Object.keys(areasByShindo).sort((a, b) => shindoOrder.indexOf(a) - shindoOrder.indexOf(b));
+
+                if (sortedShindos.length > 0) {
+                    message += `\n\n【予想される震度】`;
+                    sortedShindos.forEach(shindo => {
+                        message += `\n《最大震度${shindo}》\n${areasByShindo[shindo].join('、')}`;
+                    });
+                }
             }
-        });
 
-        // 震度を降順でソート
-        const shindoOrder = ['7', '6強', '6弱', '5強', '5弱', '4', '3', '2', '1'];
-        const sortedShindos = Object.keys(areasByShindo).sort((a, b) => shindoOrder.indexOf(a) - shindoOrder.indexOf(b));
-
-        // 予想される震度を追加
-        if (sortedShindos.length > 0) {
-            message += `\n\n【予想される震度】`;
-            sortedShindos.forEach(shindo => {
-                message += `\n《最大震度${shindo}》\n${areasByShindo[shindo].join('、')}`;
-            });
+            return message;
         }
-    }
 
-    return message;
-}
         function getScaleDescription(scale) {
             const scaleDescriptions = {
                 10: '1',
@@ -1215,13 +1487,12 @@ function formatEewMessage(data) {
 
         function getTsunamiInfo(domesticTsunami) {
             const tsunamiMessages = {
-                "None": "この地震による津波の心配はありません。", 
+                "None": "この地震による津波の心配はありません。",
                 "Unknown": "不明",
-                "Checking": "津波の有無を調査中です。今後の情報に注意してください。",　
-                
+                "Checking": "津波の有無を調査中です。今後の情報に注意してください。",
                 "NonEffective": "この地震により、若干の海面変動があるかもしれませんが、被害の心配はありません。",
-                "Watch": "この地震により、現在、津波注意報を発表中です。",　
-                "Warning": "この地震により、津波警報等（大津波警報・津波警報あるいは津波注意報）を発表中です。"　
+                "Watch": "この地震により、現在、津波注意報を発表中です。",
+                "Warning": "この地震により、津波警報等（大津波警報・津波警報あるいは津波注意報）を発表中です。"
             };
             return tsunamiMessages[domesticTsunami] || "（津波情報なし）";
         }
@@ -1232,7 +1503,7 @@ function formatEewMessage(data) {
                 "Unknown": '<span class="badge">不明</span>',
                 "Checking": '<span class="badge">津波調査中</span>',
                 "NonEffective": '<span class="badge">若干の海面変動</span>',
-                "Watch": '<span class="badge warning">津波注意報</span>',
+                "Watch": '<span class="badge watch">津波注意報</span>',
                 "Warning": '<span class="badge warning">津波警報</span>'
             };
             return tsunamiBadges[domesticTsunami] || "";
@@ -1292,6 +1563,11 @@ function formatEewMessage(data) {
             eewSection.scrollIntoView({ behavior: 'smooth' });
         }
 
+        function scrollToTsunamiSection() {
+            const tsunamiSection = document.getElementById('tsunamiSection');
+            tsunamiSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
         document.getElementById('subscribeButton').addEventListener('click', () => {
             subscribe().catch(err => console.error(err));
         });
@@ -1307,7 +1583,8 @@ function formatEewMessage(data) {
         document.addEventListener('DOMContentLoaded', () => {
             fetchEarthquakeInfo();
             fetchEewInfo();
-            fetchAdminMessage(); // 管理者メッセージを取得
+            fetchTsunamiInfo();
+            fetchAdminMessage();
         });
     </script>
 </body>
