@@ -1342,7 +1342,32 @@
                 }, 2000);
             }
         }
+   function loadWeatherIframe() {
+    const container = document.getElementById('weatherIframeContainer');
+    const loadButton = document.getElementById('loadWeatherButton');
+    
+    // Check if iframe already exists to avoid duplicates
+    if (container.innerHTML === '') {
+        const iframe = document.createElement('iframe');
+        iframe.id = 'weatherIframe';
+        iframe.src = 'https://hayato040404.github.io/jma-weather/';
+        iframe.title = '気象情報';
+        container.appendChild(iframe);
+        container.style.display = 'block';
+        loadButton.style.display = 'none'; // Hide the button after loading
+    }
+}
 
+// Add event listener for the load button
+document.getElementById('loadWeatherButton').addEventListener('click', () => {
+    loadWeatherIframe();
+});
+
+// Add scroll function for weather section
+function scrollToWeatherSection() {
+    const weatherSection = document.getElementById('weatherSection');
+    weatherSection.scrollIntoView({ behavior: 'smooth' });
+}
         function showEarthquakeDetail(index) {
             const earthquake = earthquakeData[index];
             const formattedMessage = generateDetailedEarthquakeText(earthquake);
