@@ -681,14 +681,14 @@
             </div>
         </div>
 
-        <div class="section-header">気象情報</div>
-        <div class="section-subheader">天気予報や気象警報などの情報</div>
-        <div class="list-group">
-            <div class="coming-soon">
-                <div class="coming-soon-icon">🌤️</div>
-                <div class="coming-soon-text">Coming Soon..</div>
-            </div>
-        </div>
+        <div class="section-header" id="weatherSection">気象情報</div>
+<div class="section-subheader">天気予報や気象警報などの情報</div>
+<div class="list-group" id="weatherContainer">
+    <div class="weather-load">
+        <button class="btn" id="loadWeatherButton">気象情報を読み込む</button>
+        <div id="weatherIframeContainer" style="display: none;"></div>
+    </div>
+</div>
 
         <div class="footer">
             一部のコードはv0によって書かれています。
