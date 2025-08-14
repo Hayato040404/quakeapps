@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Seismo（セイスモ）</title>
+    <title>Seismo</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/ewc.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/ewc.png">
@@ -672,7 +672,7 @@
             </div>
         </div>
 
-        <div class="section-header">地震情報アプリ　Seismo（セイスモ）</div>
+        <div class="section-header">地震情報アプリ　Seismo</div>
         <div class="section-subheader">最新の地震情報を表示しています</div>
         <div class="list-group" id="earthquakeList">
             <div class="loading-indicator">
@@ -699,8 +699,8 @@
             </div>
         </div>
 
-        <div class="section-header" id="weatherSection">気象情報</div>
-<div class="section-subheader">天気予報や気象警報などの情報</div>
+        <div class="section-header" id="weatherSection">気象情報β</div>
+<div class="section-subheader">気象警報などの情報</div>
 <div class="list-group" id="weatherContainer">
     <div class="weather-load">
         <button class="btn" id="loadWeatherButton">気象情報を読み込む</button>
@@ -900,8 +900,8 @@
             let formattedMessage;
 
             if (earthquake.issue && earthquake.issue.type === 'ScalePrompt') {
-                formattedMessage = `[震度速報]\n${date} ${timeStr}ごろ、地震による強い揺れを感じました。震度３以上が観測された地域をお知らせします。\n`;
-
+                //formattedMessage = `[震度速報]\n${date} ${timeStr}ごろ、地震による強い揺れを感じました。震度３以上が観測された地域をお知らせします。\n`;
+                formattedMessage = `[震度速報]\n${date} ${timeStr}頃\n`;
                 Object.keys(pointsByScale).sort((a, b) => b - a).forEach(scale => {
                     formattedMessage += `\n《震度${scale}》`;
                     Object.keys(pointsByScale[scale]).forEach(pref => {
@@ -931,7 +931,7 @@
                         pointsByScale[scale][pref].forEach(addr => {
                             uniqueCities.add(addr);
                         });
-                        formattedMessage += `\n【${pref}】${Array.from(uniqueCities).join('  ')}`;
+                        formattedMessage += `\n【${pref}】${Array.from(uniqueCities).join(' ')}`;
                     });
                 });
 
@@ -1006,7 +1006,7 @@
             });
 
             if (forecasts.length > 0) {
-                formattedMessage += `\n\n【津波情報🟦】\n津波予報を発表しました。\n若干の界面変動に注意してください。\n［対象地域］\n${forecasts.join('\n')}`;
+                formattedMessage += `\n\n【津波情報🟦】\n津波予報を発表しました。\n若干の海面変動に注意してください。\n［対象地域］\n${forecasts.join('\n')}`;
             }
 
             if (watches.length > 0) {
@@ -1094,7 +1094,7 @@
                 document.getElementById('tsunamiList').innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">🌊</div>
-                        <div>津波情報の取得に失敗しました</div>
+                        <div>津波情報の取得に失敗しました（現在メンテナンス中です）</div>
                     </div>
                 `;
             }
@@ -1210,8 +1210,8 @@
             
             container.appendChild(listItem);
         }
-
-        function displayTsunamiList(tsunamis) {
+//display
+        function displaTsunamiList(tsunamis) {
             const container = document.getElementById('tsunamiList');
             container.innerHTML = '';
             
@@ -1376,12 +1376,12 @@ function scrollToWeatherSection() {
             const tsunamiType = earthquake.earthquake.domesticTsunami;
             
             if (tsunamiType === 'None') {
-                tsunamiHtml = `<div class="no-tsunami">この地震による津波の心配はありません。</div>`;
+                //tsunamiHtml = `<div class="no-tsunami">この地震による津波の心配はありません。</div>`;
             } else if (tsunamiType === 'Checking') {
-                tsunamiHtml = `<div class="checking-tsunami">津波の有無を調査中です。今後の情報に注意してください。</div>`;
+                //tsunamiHtml = `<div class="checking-tsunami">津波の有無を調査中です。今後の情報に注意してください。</div>`;
             } else if (['NonEffective', 'Watch', 'Warning'].includes(tsunamiType)) {
                 const tsunamiInfo = getTsunamiInfo(tsunamiType);
-                tsunamiHtml = `<div class="tsunami-warning">${tsunamiInfo}</div>`;
+                //tsunamiHtml = `<div class="tsunami-warning">${tsunamiInfo}</div>`;
             }
 
             document.getElementById('earthquakeDetailInfo').innerHTML = formattedMessage.replace(/\n/g, '<br>') + tsunamiHtml;
