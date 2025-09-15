@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="light dark">
+<title>Seismo — 利用規約</title>
+<style>
+/* --- 元のスタイル（必要な部分は維持） */
+        :root {
+            --system-blue: #007AFF;
+            --system-red: #FF3B30;
+            --system-green: #34C759;
+            --system-orange: #FF9500;
+            --system-gray: #8E8E93;
+            --system-gray2: #AEAEB2;
+            --system-gray3: #C7C7CC;
+            --system-gray4: #D1D1D6;
+            --system-gray5: #E5E5EA;
+            --system-gray6: #F2F2F7;
+            --system-purple: #AF52DE;
+        }
+
+        /* Light mode (default) */
+        :root {
+            --background: #F2F2F7;
+            --card-background: #FFFFFF;
+            --text-primary: #000000;
+            --text-secondary: #6C6C70;
+            --text-tertiary: #8E8E93;
+            --divider: rgba(60, 60, 67, 0.1);
+            --shadow: rgba(0, 0, 0, 0.05);
+            --active-background: rgba(0, 0, 0, 0.05);
+            --copy-button-bg: rgba(0, 122, 255, 0.1);
+            --copy-button-active: rgba(0, 122, 255, 0.2);
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #000000;
+                --card-background: #1C1C1E;
+                --text-primary: #FFFFFF;
+                --text-secondary: #98989E;
+                --text-tertiary: #636366;
+                --divider: rgba(84, 84, 88, 0.65);
+                --shadow: rgba(0, 0, 0, 0.3);
+                --active-background: rgba(255, 255, 255, 0.05);
+                --copy-button-bg: rgba(0, 122, 255, 0.2);
+                --copy-button-active: rgba(0, 122, 255, 0.3);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;seismo@svk.jp
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        .container {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: var(--background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 16px 0 8px;
+            text-align: center;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .app-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .app-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .section-header {
+            padding: 18px 0 8px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            background-color: var(--background);
+        }
+
+        .section-subheader {
+            padding: 0 0 12px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            background-color: var(--background);
+        }
+
+        .list-group {
+            margin-bottom: 24px;
+            background-color: var(--card-background);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px var(--shadow);
+            padding: 0;
+        }
+
+        .term-item {
+            padding: 18px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .term-item:last-child {
+            border-bottom: none;
+        }
+
+        .term-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        /* ここを修正：行数制限（line-clamp）を解除して全文を表示する */
+        .term-body {
+            font-size: 14px;
+            color: var(--text-secondary);
+            white-space: pre-line;
+            overflow: visible;
+            display: block;
+            -webkit-box-orient: vertical;
+            /* -webkit-line-clamp を使わない */
+        }
+
+        .contact {
+            padding: 16px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            background-color: transparent;
+        }
+
+        .coming-soon {
+            text-align: center;
+            padding: 28px 16px;
+            color: var(--text-secondary);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 8px;
+            color: var(--text-tertiary);
+            font-size: 12px;
+            border-top: 1px solid var(--divider);
+            margin-top: 24px;
+        }
+
+        @media (max-width:420px) {
+            body { line-height: 1.5; }
+            .container { padding: 0 12px; }
+            .term-item { padding: 14px; }
+        }
+</style>
+</head>
+<body>
+<div class="container">
+    <header class="header" role="banner">
+        <div class="app-title">Seismo — 利用規約</div>
+        <div class="app-subtitle">最終更新: 2025年9月15日</div>
+    </header>
+
+    <main>
+        <section class="section-header">第1章 総則</section>
+        <div class="section-subheader">本利用規約（以下「本規約」）は、地震情報ウェブアプリケーション「Seismo」（以下「当サイト」）の利用条件を定めるものです。利用者は当サイトにアクセスすることにより、本規約に同意したものとみなされます。</div>
+
+        <div class="list-group" aria-labelledby="terms">
+            <div class="term-item">
+                <div class="term-title">第1条（定義）</div>
+                <div class="term-body">
+                    本規約において「当サイト」とは、Seismo のウェブアプリケーションおよびこれに関連するウェブページを意味します。「利用者」とは当サイトにアクセスまたは当サイトを利用するすべての者を指します。
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-title">第2条（個人情報の取扱い）</div>
+                <div class="term-body">
+                    当サイトは、原則として利用者の個人情報（氏名、メールアドレス、端末識別情報等）を収集いたしません。管理上および不正利用防止のために技術的に必要な最小限の情報を一時的に取得する場合があること、また法令の定めに基づき開示を求められた場合は対応することがあります。利用者の個人情報を取り扱う際には、適用される法令等を遵守します。
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-title">第3条（サービスの停止・終了）</div>
+                <div class="term-body">
+                    当サイトは、メンテナンス、システム更新、サーバ障害、運用上の判断その他やむを得ない事由により、予告なく一時的にサービスを停止又は終了することがあります。サービス停止または終了により生じた利用者の損害について、当サイトの管理者は一切の責任を負いません。
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-title">第4条（情報の正確性および利用上の注意）</div>
+                <div class="term-body">
+                    当サイトに掲載する地震情報、警報、予報その他の情報は、提供元のデータに基づき表示していますが、その完全性、正確性、最新性、有用性等について保証するものではありません。利用者は当該情報を参照のうえ自己の判断で行動してください。当サイトの情報に基づいて生じた損害について、管理者は一切の責任を負わないものとします。
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-title">第5条（共有・公開の取扱い）</div>
+                <div class="term-body">
+                    当サイトの存在を友人・知人へ個別（1対1）で共有することは問題ありません。しかしながら、管理者の事前承諾なく多数の者の前で公表・配布・宣伝する行為（大規模な掲示、SNS等での一括配信等）は制限する場合があります。大量配布や公衆への掲示を行う際は、事前に管理者へお問い合わせください。
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-title">第6条（転載について）</div>
+                <div class="term-body">
+                    当サイトに掲載された地震情報等は、原則として転載を許諾します。転載に伴う責任（内容の誤用、改変等）は転載者の責任となり、管理者は一切の責任を負いません。
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-title">第7条（スクレイピング等の自動取得の禁止）</div>
+                <div class="term-body">
+                    当サイトのデータを自動化された手段（クローラー、スクレイパー、ボット等）により定期的かつ大量に取得し、自己のウェブサイトやサービスに組み込む行為は禁じます。データ提供が必要な場合は、事前に管理者との書面による合意を得てください。robots.txtやアクセス制御により技術的に制限を行う場合があります。
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-title">第8条（違反時の措置）</div>
+                <div class="term-body">
+                    利用者が本規約に違反したと判断された場合、管理者は当該利用者に対して、アクセス制限、IPアドレスのブロック、当該コンテンツの削除等の必要な措置を講じることができます。これらの措置により利用者に生じた損害について、管理者は一切責任を負いません。
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-title">第9条（免責）</div>
+                <div class="term-body">
+                    当サイトは有志で提供されます。管理者は、本サイトの安全性、特定目的への適合性、継続的提供、エラーや欠陥の不存在等について一切保証しません。また、本サイトの利用に関連して利用者に発生した直接的・間接的な損害について、法令により責任を負うべき場合を除き、一切の責任を負いません。
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-title">第10条（規約の変更）</div>
+                <div class="term-body">
+                    管理者は必要に応じて本規約を変更することができるものとします。重要な変更を行う場合は、本サイト上で告知します。変更後に当サイトを利用した場合、利用者は当該変更に同意したものとみなされます。
+                </div>
+            </div>
+
+            
+        </div>
+
+        <section class="section-header">お問い合わせ</section>
+        <div class="list-group">
+            <div class="term-item" style="border-bottom:none;">
+                <div class="term-title">お問い合わせ先</div>
+                <div class="term-body contact">
+                    本規約に関するご質問・ご意見は、以下の連絡先までお願いいたします。<br>
+                     <strong>seismo@svk.jp</strong><br>
+                    
+                </div>
+            </div>
+        </div>
+
+       
+
+        <footer class="footer">
+            © Seismo
+        </footer>
+    </main>
+</div>
+</body>
+</html>
