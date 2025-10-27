@@ -651,6 +651,49 @@
     border: none;
     display: block;
 }
+      .update-end-popup {
+    position: fixed;
+    bottom: 20px;
+    left: 16px;
+    max-width: 300px;
+    margin: 0;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    background-color: var(--card-background);
+    color: var(--text-primary);
+    border-left: 4px solid var(--system-blue);
+    box-shadow: 0 2px 10px var(--shadow);
+    z-index: 1500;
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.update-end-popup.show {
+    display: block;
+}
+
+.update-end-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.update-end-close:hover {
+    opacity: 1;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
     </style>
 </head>
 <body>
@@ -659,6 +702,10 @@
             <button class="admin-message-close" onclick="hideAdminMessage()">×</button>
             <div id="adminMessageText"></div>
         </div>
+      <div id="updateEndPopup" class="update-end-popup">
+    <button class="update-end-close" onclick="hideUpdateEndPopup()">×</button>
+    <div id="updateEndPopupText">このサイトの機能アップデートは終了いたしました。今後も現在の機能はご利用いただけますが、新機能の追加や大幅な変更は予定しておりません。長らくのご利用、誠にありがとうございました。</div>
+</div>
 
         <div class="header">
             <h1 class="app-title">地震情報</h1>
@@ -1552,6 +1599,24 @@ function scrollToWeatherSection() {
             };
             return tsunamiBadges[domesticTsunami] || "";
         }
+      function showUpdateEndPopup() {
+    const popupElement = document.getElementById('updateEndPopup');
+    // ポップアップが以前に閉じられていないか確認
+    if (!localStorage.getItem('updateEndPopupDismissed')) {
+        popupElement.classList.add('show');
+    }
+}
+      
+
+function hideUpdateEndPopup() {
+    const popupElement = document.getElementById('updateEndPopup');
+    popupElement.classList.remove('show');
+    // 閉じた状態をlocalStorageに保存
+    localStorage.setItem('updateEndPopupDismissed', 'true');
+}
+
+// ページ読み込み時にポップアップを表示
+
 
         function groupPointsByScale(points) {
             const pointsByScale = {};
@@ -1631,6 +1696,7 @@ function scrollToWeatherSection() {
             fetchEewInfo();
             fetchTsunamiInfo();
             fetchAdminMessage();
+            showUpdateEndPopup();
         });
     </script>
 </body>
