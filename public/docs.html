@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Seismo Documentation</title>
+    <style>
+        :root {
+            --system-blue: #0071e3;
+            --system-gray-light: #f5f5f7;
+            --system-gray-dark: #1d1d1f;
+            --text-primary-light: #1d1d1f;
+            --text-secondary-light: #86868b;
+            --text-primary-dark: #f5f5f7;
+            --text-secondary-dark: #86868b;
+            --border-light: #d2d2d7;
+            --border-dark: #424245;
+            --card-bg-light: #ffffff;
+            --card-bg-dark: #2c2c2e;
+            --nav-bg-light: rgba(255, 255, 255, 0.72);
+            --nav-bg-dark: rgba(29, 29, 31, 0.72);
+            --code-bg-light: #f4f4f5;
+            --code-bg-dark: #1c1c1e;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: var(--system-gray-dark);
+                --text-primary: var(--text-primary-dark);
+                --text-secondary: var(--text-secondary-dark);
+                --border-color: var(--border-dark);
+                --card-bg: var(--card-bg-dark);
+                --nav-bg: var(--nav-bg-dark);
+                --code-bg: var(--code-bg-dark);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: var(--system-gray-light);
+                --text-primary: var(--text-primary-light);
+                --text-secondary: var(--text-secondary-light);
+                --border-color: var(--border-light);
+                --card-bg: var(--card-bg-light);
+                --nav-bg: var(--nav-bg-light);
+                --code-bg: var(--code-bg-light);
+            }
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            line-height: 1.47059;
+            letter-spacing: -0.022em;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background-color: var(--nav-bg);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .navbar {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        .back-link {
+            color: var(--system-blue);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover {
+            opacity: 0.8;
+        }
+
+        .main-content {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 100px 20px 60px;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        h1 {
+            font-size: 48px;
+            line-height: 1.08349;
+            font-weight: 700;
+            letter-spacing: -0.003em;
+            margin: 0 0 12px;
+        }
+
+        .hero-subtitle {
+            font-size: 21px;
+            line-height: 1.381;
+            font-weight: 400;
+            letter-spacing: 0.011em;
+            color: var(--text-secondary);
+            margin: 0 auto;
+            max-width: 600px;
+        }
+
+        .section {
+            margin-bottom: 64px;
+        }
+
+        h2 {
+            font-size: 32px;
+            line-height: 1.125;
+            font-weight: 600;
+            letter-spacing: 0.004em;
+            margin: 0 0 32px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 18px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            margin-bottom: 24px;
+        }
+
+        .category-label {
+            font-size: 12px;
+            line-height: 1.33337;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--system-blue);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        h3 {
+            font-size: 24px;
+            line-height: 1.16667;
+            font-weight: 600;
+            letter-spacing: 0.009em;
+            margin: 0 0 8px;
+        }
+
+        .card-desc {
+            font-size: 17px;
+            line-height: 1.47059;
+            font-weight: 400;
+            letter-spacing: -0.022em;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .code-container {
+            margin-top: 24px;
+        }
+
+        .code-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 0 0 24px;
+            overflow-x: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        pre:last-child {
+            margin-bottom: 0;
+        }
+
+        .variable {
+            color: var(--system-blue);
+            font-weight: 500;
+        }
+
+        @media only screen and (max-width: 734px) {
+            h1 {
+                font-size: 32px;
+            }
+            .hero-subtitle {
+                font-size: 17px;
+            }
+            .main-content {
+                padding-top: 80px;
+            }
+            .card {
+                padding: 24px;
+            }
+            h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="back-link">
+            <svg width="11" height="18" viewBox="0 0 11 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right:2px;">
+                <path d="M9.5 2L2 9L9.5 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            戻る
+        </a>
+    </nav>
+
+    <main class="main-content">
+        <header class="hero-section">
+            <h1>メッセージテンプレート</h1>
+            <p class="hero-subtitle">Seismoにおけるテキスト自動生成の仕様とフォーマット。</p>
+        </header>
+
+        <section class="section">
+            <h2>緊急地震速報</h2>
+            
+            <div class="card">
+                <header class="card-header">
+                    <span class="category-label">通常報</span>
+                    <h3>緊急地震速報（通常）</h3>
+                    <p class="card-desc">地震発生直後に推測された震源・規模・最大震度などの情報です。</p>
+                </header>
+                
+                <div class="code-container">
+                    <div class="code-title">フォーマット</div>
+                    <pre>【<span class="variable">{Title}</span> 推定最大震度<span class="variable">{MaxIntensity}</span>】
+(第<span class="variable">{Serial}</span>報)
+<span class="variable">{Time}</span>頃、<span class="variable">{Hypocenter}</span>を震源とする地震がありました。
+地震の規模はM<span class="variable">{Magnitude}</span>程度、震源の深さは約<span class="variable">{Depth}</span>km、
+最大震度<span class="variable">{MaxIntensity}</span>程度と推定されています。
+<span class="variable">{※精度が低い場合の注意書き}</span></pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-title">出力サンプル</div>
+                    <pre>【緊急地震速報（予報） 推定最大震度5弱】
+(第4報)
+14:46頃、三陸沖を震源とする地震がありました。地震の規模はM7.9程度、震源の深さは約10km、最大震度5弱程度と推定されています。</pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <header class="card-header">
+                    <span class="category-label">取消報</span>
+                    <h3>緊急地震速報（取消）</h3>
+                    <p class="card-desc">誤報などで緊急地震速報が取り消された場合のメッセージです。</p>
+                </header>
+                
+                <div class="code-container">
+                    <div class="code-title">出力サンプル</div>
+                    <pre>先程の緊急地震速報は取り消されました。</pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>地震情報</h2>
+
+            <div class="card">
+                <header class="card-header">
+                    <span class="category-label">速報</span>
+                    <h3>震度速報</h3>
+                    <p class="card-desc">地震発生後、最初に発表される震度3以上の地域ごとの速報です。</p>
+                </header>
+                
+                <div class="code-container">
+                    <div class="code-title">フォーマット</div>
+                    <pre>[震度速報]
+<span class="variable">{MM/DD HH:MM}</span>頃
+
+《震度<span class="variable">{Scale}</span>》
+【<span class="variable">{Prefecture}</span>】<span class="variable">{City}</span>  <span class="variable">{City}</span>...</pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-title">出力サンプル</div>
+                    <pre>[震度速報]
+05/21 19:30頃
+
+《震度5強》
+【宮城県】仙台青葉区  石巻市
+
+《震度4》
+【岩手県】盛岡市  一関市</pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <header class="card-header">
+                    <span class="category-label">詳細</span>
+                    <h3>震源・各地の震度に関する情報</h3>
+                    <p class="card-desc">詳細な震源位置、規模(マグニチュード)、深さ、津波の有無、および各地の詳しい震度が発表された際のメッセージです。</p>
+                </header>
+
+                <div class="code-container">
+                    <div class="code-title">フォーマット</div>
+                    <pre>[地震情報]
+<span class="variable">{MM/DD HH:MM}</span>頃
+震源地：<span class="variable">{Hypocenter}</span>
+最大震度：<span class="variable">{MaxScale}</span>
+深さ：<span class="variable">{Depth}</span>
+規模：M<span class="variable">{Magnitude}</span>
+<span class="variable">{TsunamiInfo}</span>
+ 
+[各地の震度]
+《震度<span class="variable">{Scale}</span>》
+【<span class="variable">{Prefecture}</span>】<span class="variable">{City}</span> <span class="variable">{City}</span>...
+
+【情報】
+<span class="variable">{FreeFormComment}</span></pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-title">出力サンプル</div>
+                    <pre>[地震情報]
+05/21 19:30頃
+震源地：宮城県沖
+最大震度：5強
+深さ：約60km
+規模：M6.2
+この地震による津波の心配はありません。
+ 
+[各地の震度]
+《震度5強》
+【宮城県】仙台青葉区 石巻市
+《震度4》
+【岩手県】一関市
+【福島県】福島市 郡山市
+
+【情報】
+この地震について、緊急地震速報を発表しています。</pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>津波情報</h2>
+
+            <div class="card">
+                <header class="card-header">
+                    <span class="category-label">詳細</span>
+                    <h3>津波警報・注意報・観測情報</h3>
+                    <p class="card-desc">発表されている津波の予報・警報エリア、および沿岸での実際の観測値情報です。</p>
+                </header>
+                
+                <div class="code-container">
+                    <div class="code-title">フォーマット</div>
+                    <pre>【津波情報】
+発生日時：<span class="variable">{MM/DD HH:MM}</span>頃
+震源地：<span class="variable">{Hypocenter}</span>
+規模：M<span class="variable">{Magnitude}</span>
+
+■ 津波警報・注意報・予報
+【<span class="variable">{Category}</span>】<span class="variable">{AreaName}</span>
+
+■ 沿岸の津波観測値
+[<span class="variable">{AreaName}</span>]
+・<span class="variable">{StationName}</span>: <span class="variable">{MaxHeight}</span>
+
+【情報】
+<span class="variable">{WarningComment}</span></pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-title">出力サンプル</div>
+                    <pre>【津波情報】
+発生日時：05/21 19:30頃
+震源地：宮城県沖
+規模：M7.4
+
+■ 津波警報・注意報・予報
+【津波警報】宮城県
+【津波注意報】岩手県
+【津波注意報】福島県
+
+■ 沿岸の津波観測値
+[宮城県]
+・仙台港: 1.2m
+・石巻鮎川: 観測中
+
+【情報】
+津波は幾度も押し寄せます。警報が解除されるまで安全な場所に留まってください。</pre>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+</body>
+</html>
